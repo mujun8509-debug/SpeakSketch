@@ -79,6 +79,40 @@ export function CommandLog() {
     return relationType ? relationMap[relationType] || relationType : '';
   };
 
+  // 根据 actionTypes 判断解析类型
+  const getParseType = (actionTypes?: string[], relationType?: string): string => {
+    if (!actionTypes || actionTypes.length === 0) return '';
+    
+    // 空间关系
+    if (relationType) return '空间关系';
+    
+    // 编辑操作
+    const editTypes = ['move', 'delete', 'change_color', 'resize', 'clear', 'undo', 'redo', 'export_png', 'replay'];
+    if (actionTypes.some(t => editTypes.includes(t))) return '编辑操作';
+    
+    // 复杂场景（多个复杂对象）
+    const complexObjectTypes = ['draw_person', 'draw_cat', 'draw_dog', 'draw_car', 'draw_flower', 'draw_mountain', 'draw_river', 'draw_boat', 'draw_grass', 'draw_bird', 'draw_house', 'draw_sun', 'draw_cloud', 'draw_tree'];
+    const complexCount = actionTypes.filter(t => complexObjectTypes.includes(t)).length;
+    if (complexCount >= 3) return '复杂场景';
+    
+    // 复杂对象
+    if (actionTypes.some(t => complexObjectTypes.includes(t))) return '复杂对象';
+    
+    // 基础图形
+    return '基础图形';
+  };
+
+  const getParseTypeColor = (parseType: string): string => {
+    switch (parseType) {
+      case '基础图形': return '#3b82f6';
+      case '复杂对象': return '#8b5cf6';
+      case '复杂场景': return '#ec4899';
+      case '空间关系': return '#7c3aed';
+      case '编辑操作': return '#f97316';
+      default: return '#6b7280';
+    }
+  };
+
   return (
     <div className="command-log">
       <h3 className="section-title">指令日志</h3>
@@ -86,45 +120,58 @@ export function CommandLog() {
         {logs.length === 0 ? (
           <p className="empty">暂无指令记录</p>
         ) : (
-          logs.map((log) => (
-            <div key={log.id} className="log-item">
-              <div className="log-header">
-                <span className="log-time">{formatTime(log.timestamp)}</span>
-                <span 
-                  className="log-status"
-                  style={{ color: getStatusColor(log.status) }}
-                >
-                  {getStatusText(log.status)}
-                </span>
-                {log.executionTime && (
-                  <span className="log-exec-time">{formatExecutionTime(log.executionTime)}</span>
-                )}
-              </div>
-              <div className="log-content">
-                <span className="log-text">{log.rawText}</span>
-              </div>
-              {log.actionCount !== undefined && log.actionCount > 0 && (
-                <div className="log-actions">
-                  {log.relationType && (
-                    <span className="log-relation-type">空间关系: {getRelationTypeText(log.relationType)}</span>
-                  )}
-                  <span className="log-action-count">动作: {log.actionCount} 个</span>
-                  {log.actionTypes && log.actionTypes.length > 0 && (
-                    <div className="log-action-types">
-                      {log.actionTypes.map((type, index) => (
-                        <span key={index} className="action-tag">
-                          {getActionTypeText(type)}
-                        </span>
-                      ))}
-                    </div>
+          logs.map((log) => {
+            const parseType = getParseType(log.actionTypes, log.relationType);
+            return (
+              <div key={log.id} className="log-item">
+                <div className="log-header">
+                  <span className="log-time">{formatTime(log.timestamp)}</span>
+                  <span 
+                    className="log-status"
+                    style={{ color: getStatusColor(log.status) }}
+                  >
+                    {getStatusText(log.status)}
+                  </span>
+                  {log.executionTime && (
+                    <span className="log-exec-time">{formatExecutionTime(log.executionTime)}</span>
                   )}
                 </div>
-              )}
-              {log.error && (
-                <span className="log-error">{log.error}</span>
-              )}
-            </div>
-          ))
+                <div className="log-content">
+                  <span className="log-text">{log.rawText}</span>
+                </div>
+                {parseType && (
+                  <div className="log-parse-type">
+                    <span 
+                      className="parse-type-tag"
+                      style={{ background: getParseTypeColor(parseType) }}
+                    >
+                      {parseType}
+                    </span>
+                  </div>
+                )}
+                {log.actionCount !== undefined && log.actionCount > 0 && (
+                  <div className="log-actions">
+                    {log.relationType && (
+                      <span className="log-relation-type">关系: {getRelationTypeText(log.relationType)}</span>
+                    )}
+                    <span className="log-action-count">动作: {log.actionCount} 个</span>
+                    {log.actionTypes && log.actionTypes.length > 0 && (
+                      <div className="log-action-types">
+                        {log.actionTypes.map((type, index) => (
+                          <span key={index} className="action-tag">
+                            {getActionTypeText(type)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {log.error && (
+                  <span className="log-error">{log.error}</span>
+                )}
+              </div>
+            );
+          })
         )}
       </div>
     </div>
