@@ -139,34 +139,61 @@ export function downloadImage(imageUrl: string, filename?: string): void {
 /**
  * 将 Data URL 转换为可下载的 Blob
  */
-export function dataUrlToBlob(dataUrl: string): Blob {
-  const parts = dataUrl.split(',');
-  const mime = parts[0].match(/:(.*?);/)?.[1] || 'image/png';
-  const bstr = atob(parts[1]);
-  const n = bstr.length;
-  const u8arr = new Uint8Array(n);
-  
-  for (let i = 0; i < n; i++) {
-    u8arr[i] = bstr.charCodeAt(i);
+export function dataUrlToBlob(dataUrl: string): Blob | null {
+  if (!dataUrl || !dataUrl.startsWith('data:')) {
+    console.warn('Invalid data URL: missing data: prefix');
+    return null;
   }
-  
-  return new Blob([u8arr], { type: mime });
+
+  const parts = dataUrl.split(',');
+  if (parts.length !== 2 || !parts[1]) {
+    console.warn('Invalid data URL: missing payload');
+    return null;
+  }
+
+  const header = parts[0];
+  const mime = header.match(/^data:([^;,]+)(?:;base64)?$/)?.[1] || 'image/png';
+  const isBase64 = header.includes(';base64');
+
+  try {
+    const byteString = isBase64 ? atob(parts[1]) : decodeURIComponent(parts[1]);
+    const bytes = new Uint8Array(byteString.length);
+
+    for (let i = 0; i < byteString.length; i++) {
+      bytes[i] = byteString.charCodeAt(i);
+    }
+
+    return new Blob([bytes], { type: mime });
+  } catch (error) {
+    console.warn('Failed to convert data URL to Blob', error);
+    return null;
+  }
 }
 
 /**
  * 下载 Data URL 图像
  */
 export function downloadDataUrl(dataUrl: string, filename?: string): void {
-  const blob = dataUrlToBlob(dataUrl);
-  const url = URL.createObjectURL(blob);
-  
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename || `speaksketch-styled-${Date.now()}.png`;
-  link.click();
-  
-  // 清理
-  setTimeout(() => {
-    URL.revokeObjectURL(url);
-  }, 100);
+  try {
+    const blob = dataUrlToBlob(dataUrl);
+    if (!blob) {
+      alert('图片数据异常，无法下载，请重新生成后再试');
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename || `speaksketch-styled-${Date.now()}.png`;
+    link.click();
+
+    // 清理
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 100);
+  } catch (error) {
+    console.warn('Failed to download data URL image', error);
+    alert('图片下载失败，请重新生成后再试');
+  }
 }

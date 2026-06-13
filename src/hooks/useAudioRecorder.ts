@@ -66,16 +66,15 @@ export function useAudioRecorder(): UseAudioRecorderResult {
           return;
         }
         
-        // 检查麦克风权限
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          stream.getTracks().forEach(track => track.stop());
-          setIsSupported(true);
-          setError(undefined);
-        } catch (permissionError) {
+        // 仅检查能力，不在初始化阶段请求麦克风权限
+        if (!navigator.mediaDevices?.getUserMedia) {
           setIsSupported(false);
-          setError('请允许麦克风权限以使用语音录制');
+          setError('浏览器不支持麦克风录制，请使用浏览器识别或调试输入');
+          return;
         }
+
+        setIsSupported(true);
+        setError(undefined);
       } catch {
         setIsSupported(false);
         setError('无法检测音频录制支持');
@@ -98,6 +97,11 @@ export function useAudioRecorder(): UseAudioRecorderResult {
     try {
       setError(undefined);
       audioChunksRef.current = [];
+
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setError('浏览器不支持麦克风录制，请使用浏览器识别或调试输入');
+        return;
+      }
       
       // 获取麦克风流
       const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -155,7 +159,7 @@ export function useAudioRecorder(): UseAudioRecorderResult {
         : '无法启动音频录制';
       
       if (errorMsg.includes('Permission') || errorMsg.includes('NotAllowed')) {
-        setError('请允许麦克风权限以使用语音录制');
+        setError('麦克风权限被拒绝，请使用浏览器识别或调试输入');
       } else {
         setError(`音频录制启动失败: ${errorMsg}`);
       }

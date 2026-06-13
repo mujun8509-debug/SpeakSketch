@@ -200,6 +200,14 @@ const defaultASRStatus: ASRStatus = {
 // 状态存储（使用 localStorage 持久化）
 const ASR_STATUS_KEY = 'speaksketch_asr_status';
 
+function saveASRStatus(status: ASRStatus): void {
+  try {
+    localStorage.setItem(ASR_STATUS_KEY, JSON.stringify(status));
+  } catch (error) {
+    console.warn('ASR status persistence failed', error);
+  }
+}
+
 export function getASRStatus(): ASRStatus {
   try {
     const stored = localStorage.getItem(ASR_STATUS_KEY);
@@ -220,13 +228,13 @@ export function getASRStatus(): ASRStatus {
 export function setASRProvider(provider: ASRProvider): void {
   const status = getASRStatus();
   status.currentProvider = provider;
-  localStorage.setItem(ASR_STATUS_KEY, JSON.stringify(status));
+  saveASRStatus(status);
 }
 
 export function setASRLanguageMode(mode: LanguageMode): void {
   const status = getASRStatus();
   status.currentLanguageMode = mode;
-  localStorage.setItem(ASR_STATUS_KEY, JSON.stringify(status));
+  saveASRStatus(status);
 }
 
 export function recordASRResult(result: ASRResult): void {
@@ -238,5 +246,5 @@ export function recordASRResult(result: ASRResult): void {
     confidence: result.confidence,
     timestamp: Date.now(),
   };
-  localStorage.setItem(ASR_STATUS_KEY, JSON.stringify(status));
+  saveASRStatus(status);
 }
