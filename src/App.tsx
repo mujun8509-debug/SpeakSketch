@@ -5,6 +5,7 @@ import { CommandLog } from './components/CommandLog';
 import { ExampleCommands } from './components/ExampleCommands';
 import { Toolbar } from './components/Toolbar';
 import { ReplayPanel } from './components/ReplayPanel';
+import { ASRSettingsPanel } from './components/ASRSettingsPanel';
 import { useSpeechSynthesis } from './hooks/useSpeechSynthesis';
 import { parse } from './core/localParser';
 import { commandExecutor } from './core/commandExecutor';
@@ -143,6 +144,7 @@ function App() {
 
         {/* 右侧控制台区域 */}
         <aside className="sidebar">
+          <ASRSettingsPanel />
           <VoicePanel />
           <ExampleCommands />
           <CommandLog />
