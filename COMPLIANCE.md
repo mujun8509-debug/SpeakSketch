@@ -7,7 +7,7 @@
 | Project Name | SpeakSketch |
 | Repository | https://github.com/mujun8509-debug/SpeakSketch |
 | Development Period | 2026-06-12 to 2026-06-14 |
-| License | MIT |
+| License | 未指定（repository does not contain a LICENSE file） |
 
 ## Originality Statement
 
@@ -38,7 +38,7 @@ AI tools used during development:
 | Code | AI assistants | Code suggestions, error fixing, best practices |
 | Documentation | AI assistants | README and code comments |
 
-**Statement**: AI tools were used only as assistance. All core architecture design, function integration, code debugging, testing, Git commits, and final delivery were completed by the developer personally. Core logic (instruction parsing, drawing execution, history management) are original implementations.
+**Statement**: AI tools were used only as assistance. The core architecture design, function integration, code debugging, testing, Git commits, and delivery checks were completed by the developer personally. Core logic such as instruction parsing, drawing execution, and history management are original implementations.
 
 ## Technical Stack
 
@@ -53,33 +53,53 @@ AI tools used during development:
 
 ## Dependencies
 
-All dependencies are from official npm registry:
-- No custom APIs
-- No external text-to-image services
-- No large language model APIs
+All dependencies are from the official npm registry. This documentation-only update does not add third-party dependencies.
+
+## External APIs and Optional Backends
+
+项目默认状态下不直接调用外部大模型或云端服务。云端 ASR 与 GPT 图像生成均为可选后端代理能力，前端不保存任何 API Key。未配置后端接口时，系统通过浏览器 Web Speech API、调试输入框或 Mock 模式保证基础功能可用。
+
+| Capability | Configuration | Notes |
+|------------|---------------|-------|
+| Browser speech recognition | Built-in Web Speech API | Default browser-side fallback |
+| Cloud ASR proxy | `VITE_ASR_API_URL` | Optional backend endpoint for Xunfei ASR proxy |
+| GPT image generation proxy | `VITE_IMAGE_API_URL` | Optional backend endpoint for GPT image generation |
+
+Security notes:
+- Xunfei APPID, APIKey, and APISecret must remain on the backend.
+- OpenAI API Key must remain on the backend.
+- The frontend only calls configured backend URLs and does not store provider credentials.
 
 ## Build Verification
 
 ```bash
-npm install  # Dependencies installed
-npm run build  # Build successful
+npm install
+npm run build
 ```
 
-## Git History
+Current verification status: core demo path is available, and the production build passes in the current repository state.
 
-| PR | Branch | Description |
-|----|--------|-------------|
-| PR 1 | docs/design-and-demo | UI optimization and Demo mode |
-| PR 2 | feature/bilingual-parser | Chinese/English instruction parsing |
-| PR 3 | docs/compliance-update | Compliance documentation |
-| PR 4 | feature/spatial-relation | Enhanced spatial relationship parsing |
+## Pull Request History
+
+| PR | Title |
+|----|-------|
+| PR #1 | feat: add bilingual command parser |
+| PR #2 | docs: add design document and demo script |
+| PR #3 | feat: enhance spatial relation parsing with 8-direction and distance relations |
+| PR #4 | docs: add compliance report documentation |
+| PR #5 | demo stability polish |
+| PR #6 | feat: add Xunfei ASR integration layer |
+| PR #7 | feat: add GPT image style generation |
+| PR #8 | docs: fix README delivery wording |
 
 ## Development Methodology
 
-- Incremental development approach
-- Each feature module committed separately
-- Complete Git commit history
+- Modular incremental development approach
 - Multiple independent Pull Request records
+- Core demo path completed
+- Basic functionality manually tested
+- Cloud capabilities are optional backend proxy interfaces
+- When backend URLs are not configured, Mock or fallback modes keep the base experience usable
 
 ---
 
