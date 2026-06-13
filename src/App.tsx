@@ -5,6 +5,9 @@ import { CommandLog } from './components/CommandLog';
 import { ExampleCommands } from './components/ExampleCommands';
 import { Toolbar } from './components/Toolbar';
 import { ReplayPanel } from './components/ReplayPanel';
+import { AIStylePanel } from './components/AIStylePanel';
+import { AIResultPreview, AIResultData } from './components/AIResultPreview';
+import { ASRSettingsPanel } from './components/ASRSettingsPanel';
 import { useSpeechSynthesis } from './hooks/useSpeechSynthesis';
 import { parse } from './core/localParser';
 import { commandExecutor } from './core/commandExecutor';
@@ -23,47 +26,78 @@ const DEMO_COMMANDS = [
 
 function App() {
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [aiResult, setAiResult] = useState<AIResultData | null>(null);
   const { speak } = useSpeechSynthesis();
   const { addLog, updateLog, addCommand } = useAppStore();
 
   // Demo 模式执行
   const runDemoMode = async () => {
-    if (isDemoMode) return;
+    if (isDemoMode) {
+      speak('演示正在进行中，请稍候');
+      return;
+    }
     setIsDemoMode(true);
 
-    for (const text of DEMO_COMMANDS) {
-      await new Promise(resolve => setTimeout(resolve, 800));
+    try {
+      speak('开始演示，请稍候');
       
-      const startTime = Date.now();
-      const logId = addLog({ commandId: '', rawText: text, status: 'executing' });
-      
-      const command = parse(text);
-      if (command.actions.length > 0) {
-        addCommand(command);
-        const actionTypes = command.actions.map(a => a.type);
-        const success = commandExecutor.execute(command);
-        const execTime = Date.now() - startTime;
+      for (const text of DEMO_COMMANDS) {
+        await new Promise(resolve => setTimeout(resolve, 800));
         
-        updateLog(logId, {
-          commandId: command.id,
-          status: success ? 'success' : 'error',
-          actionTypes,
-          actionCount: command.actions.length,
-          executionTime: execTime,
-          relationType: (command as any).relationType,
-          error: success ? undefined : '执行失败'
-        });
-      } else {
-        updateLog(logId, {
-          status: 'error',
-          error: '无法解析指令',
-          executionTime: Date.now() - startTime
-        });
+        const startTime = Date.now();
+        const logId = addLog({ commandId: '', rawText: text, status: 'executing' });
+        
+        try {
+          const command = parse(text);
+          if (command.actions.length > 0) {
+            addCommand(command);
+            const actionTypes = command.actions.map(a => a.type);
+            const success = commandExecutor.execute(command);
+            const execTime = Date.now() - startTime;
+            
+            updateLog(logId, {
+              commandId: command.id,
+              status: success ? 'success' : 'error',
+              actionTypes,
+              actionCount: command.actions.length,
+              executionTime: execTime,
+              relationType: (command as any).relationType,
+              error: success ? undefined : '执行失败'
+            });
+          } else {
+            updateLog(logId, {
+              status: 'error',
+              error: '无法解析指令',
+              executionTime: Date.now() - startTime
+            });
+          }
+        } catch (error) {
+          updateLog(logId, {
+            status: 'error',
+            error: '执行过程中出现错误',
+            executionTime: Date.now() - startTime
+          });
+        }
       }
-    }
 
-    speak('演示完成');
-    setIsDemoMode(false);
+      speak('演示完成');
+    } catch (error) {
+      speak('演示过程中出现错误');
+    } finally {
+      setIsDemoMode(false);
+    }
+  };
+
+  // AI 生成完成回调
+  const handleGenerationComplete = (result: AIResultData) => {
+    setAiResult(result);
+    if (result.error) {
+      speak('风格化生成失败');
+    } else if (result.isMock) {
+      speak('Mock 模式：使用原始画布作为结果');
+    } else {
+      speak('风格化成品已生成');
+    }
   };
 
   return (
@@ -91,6 +125,17 @@ function App() {
           <Toolbar />
           <CanvasBoard />
           
+          {/* AI 风格化面板 */}
+          <AIStylePanel onGenerationComplete={handleGenerationComplete} />
+          
+          {/* AI 结果预览 */}
+          {aiResult && (
+            <AIResultPreview 
+              result={aiResult} 
+              onClose={() => setAiResult(null)} 
+            />
+          )}
+          
           {/* 项目亮点卡片 */}
           <div className="features-card">
             <h3 className="features-title">项目亮点</h3>
@@ -116,8 +161,8 @@ function App() {
                 <span className="feature-text">可撤销、可重做、可重放</span>
               </div>
               <div className="feature-item">
-                <span className="feature-icon">⚡</span>
-                <span className="feature-text">本地优先，低成本运行</span>
+                <span className="feature-icon">✨</span>
+                <span className="feature-text">AI 风格化成品</span>
               </div>
             </div>
           </div>
@@ -125,6 +170,7 @@ function App() {
 
         {/* 右侧控制台区域 */}
         <aside className="sidebar">
+          <ASRSettingsPanel />
           <VoicePanel />
           <ExampleCommands />
           <CommandLog />
@@ -140,8 +186,9 @@ function App() {
                 <li>基础图形绘制（圆形、矩形、三角形等）</li>
                 <li>复杂对象简笔画绘制（人物、猫、狗、汽车等）</li>
                 <li>复杂场景模板绘制（公园、海边、校园）</li>
-                <li>空间关系模板解析（旁边、左边、天空中等）</li>
+                <li>空间关系模板解析（旁边、左边，天空中等）</li>
                 <li>图形编辑、撤销、重做、导出、重放</li>
+                <li>AI 风格化成品生成</li>
               </ul>
             </div>
             <div className="capability-section">
@@ -151,7 +198,6 @@ function App() {
                 <li>复杂遮挡和姿态推理</li>
                 <li>自由手绘笔刷</li>
                 <li>图层管理</li>
-                <li>文生图贴纸模式</li>
               </ul>
             </div>
           </div>
@@ -160,7 +206,7 @@ function App() {
 
       {/* 底部信息 */}
       <footer className="footer">
-        <p>SpeakSketch - 72小时实战比赛 Demo</p>
+        <p>SpeakSketch - 纯语音结构化绘图工具</p>
         <p>技术栈: Vite + React + TypeScript + Fabric.js + Zustand</p>
       </footer>
     </div>
