@@ -89,7 +89,8 @@ src/
 │   ├── ExampleCommands.tsx # 示例指令
 │   ├── CommandLog.tsx   # 指令日志
 │   ├── ReplayPanel.tsx  # 重放面板
-│   └── Toolbar.tsx      # 工具栏
+│   ├── Toolbar.tsx      # 工具栏
+│   └── ASRSettingsPanel.tsx # ASR 设置面板
 ├── core/                # 核心逻辑
 │   ├── localParser.ts   # 中文指令解析器
 │   ├── englishCommandParser.ts # 英文指令解析器
@@ -100,10 +101,12 @@ src/
 │   ├── shapeFactory.ts  # 图形工厂
 │   ├── historyManager.ts # 历史管理
 │   ├── objectVocabulary.ts # 对象词汇库
+│   ├── asrService.ts    # ASR 服务层
 │   └── commandTypes.ts  # 类型定义
 ├── hooks/               # React Hooks
 │   ├── useSpeechRecognition.ts # 语音识别
-│   └── useSpeechSynthesis.ts   # 语音合成
+│   ├── useSpeechSynthesis.ts   # 语音合成
+│   └── useAudioRecorder.ts     # 音频录制
 ├── store/               # 状态管理
 │   └── useAppStore.ts   # Zustand Store
 └── utils/               # 工具函数
@@ -165,8 +168,83 @@ src/
 ## ⚠️ 注意事项
 
 1. **语音识别**: 需要使用 Chrome 浏览器，Web Speech API 在不同浏览器中兼容性不同
-2. **不接入大模型**: 本项目使用本地模板解析，不依赖 GPT/Gemini/Claude API
-3. **简笔画风格**: 复杂对象采用简笔画风格，可编辑但非写实
+2. **简笔画风格**: 复杂对象采用简笔画风格，可编辑但非写实
+
+## 🎨 AI 风格化成品
+
+本项目支持 AI 图像风格化功能，将语音绘制的结构化草图转化为高质量成品图。
+
+### 功能定位
+
+AI 风格化是后处理增强功能，不替代结构化绘图：
+
+- 用户先完成结构化绘图，再主动触发 AI 风格化
+- 原始 Fabric 画布不被覆盖，可继续编辑
+- 支持撤销、重做、重放等所有原有功能
+
+### 风格选择
+
+| 风格 | 说明 |
+|------|------|
+| 动漫化 | 日式动漫插画风格 |
+| 电影化 | 电影级视觉效果 |
+| 赛博朋克 | 未来科技城市 |
+| 水彩画 | 柔和水彩艺术 |
+| 油画 | 古典油画质感 |
+| 像素风 | 复古像素游戏风 |
+| 国风插画 | 中国传统艺术 |
+| 儿童绘本 | 温馨童趣插画 |
+
+### 氛围选择
+
+清新校园 | 热血冒险 | 治愈系 | 未来都市 | 奇幻森林 | 赛博朋克夜景 | 温暖日落 | 黑色电影 | 科幻未来 | 梦幻 | 神秘 | 高对比 | 柔和
+
+### 后端接口约定
+
+```
+POST VITE_IMAGE_API_URL
+Content-Type: application/json
+
+请求体:
+{
+  "imageDataUrl": "data:image/png;base64,...",
+  "style": "动漫化",
+  "mood": "清新校园",
+  "prompt": "..."
+}
+
+返回:
+{
+  "imageUrl": "https://..."
+}
+或:
+{
+  "imageDataUrl": "data:image/png;base64,..."
+}
+```
+
+### 配置方法
+
+在项目根目录创建 `.env` 文件：
+
+```
+VITE_IMAGE_API_URL=http://your-backend-server/api/image/generate
+```
+
+### Mock 模式
+
+未配置 `VITE_IMAGE_API_URL` 时：
+- 系统使用 Mock 模式
+- 直接返回原始画布图像
+- UI 标注"Mock 模式：未调用真实图像模型"
+- 不影响项目正常运行
+
+### 密钥安全
+
+- 前端不保存 OpenAI API Key
+- 前端不直接调用 OpenAI API
+- 前端只通过 `VITE_IMAGE_API_URL` 调用后端接口
+- 后端负责调用 OpenAI 图像生成 / 编辑 API
 
 ## 🎤 讯飞 ASR 接入说明
 

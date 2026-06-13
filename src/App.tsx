@@ -5,6 +5,8 @@ import { CommandLog } from './components/CommandLog';
 import { ExampleCommands } from './components/ExampleCommands';
 import { Toolbar } from './components/Toolbar';
 import { ReplayPanel } from './components/ReplayPanel';
+import { AIStylePanel } from './components/AIStylePanel';
+import { AIResultPreview, AIResultData } from './components/AIResultPreview';
 import { ASRSettingsPanel } from './components/ASRSettingsPanel';
 import { useSpeechSynthesis } from './hooks/useSpeechSynthesis';
 import { parse } from './core/localParser';
@@ -24,6 +26,7 @@ const DEMO_COMMANDS = [
 
 function App() {
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [aiResult, setAiResult] = useState<AIResultData | null>(null);
   const { speak } = useSpeechSynthesis();
   const { addLog, updateLog, addCommand } = useAppStore();
 
@@ -85,6 +88,18 @@ function App() {
     }
   };
 
+  // AI 生成完成回调
+  const handleGenerationComplete = (result: AIResultData) => {
+    setAiResult(result);
+    if (result.error) {
+      speak('风格化生成失败');
+    } else if (result.isMock) {
+      speak('Mock 模式：使用原始画布作为结果');
+    } else {
+      speak('风格化成品已生成');
+    }
+  };
+
   return (
     <div className="app">
       {/* 顶部标题区域 */}
@@ -109,6 +124,17 @@ function App() {
         <div className="canvas-section">
           <Toolbar />
           <CanvasBoard />
+          
+          {/* AI 风格化面板 */}
+          <AIStylePanel onGenerationComplete={handleGenerationComplete} />
+          
+          {/* AI 结果预览 */}
+          {aiResult && (
+            <AIResultPreview 
+              result={aiResult} 
+              onClose={() => setAiResult(null)} 
+            />
+          )}
           
           {/* 项目亮点卡片 */}
           <div className="features-card">
@@ -135,8 +161,8 @@ function App() {
                 <span className="feature-text">可撤销、可重做、可重放</span>
               </div>
               <div className="feature-item">
-                <span className="feature-icon">⚡</span>
-                <span className="feature-text">本地优先，低成本运行</span>
+                <span className="feature-icon">✨</span>
+                <span className="feature-text">AI 风格化成品</span>
               </div>
             </div>
           </div>
@@ -160,8 +186,9 @@ function App() {
                 <li>基础图形绘制（圆形、矩形、三角形等）</li>
                 <li>复杂对象简笔画绘制（人物、猫、狗、汽车等）</li>
                 <li>复杂场景模板绘制（公园、海边、校园）</li>
-                <li>空间关系模板解析（旁边、左边、天空中等）</li>
+                <li>空间关系模板解析（旁边、左边，天空中等）</li>
                 <li>图形编辑、撤销、重做、导出、重放</li>
+                <li>AI 风格化成品生成</li>
               </ul>
             </div>
             <div className="capability-section">
@@ -171,7 +198,6 @@ function App() {
                 <li>复杂遮挡和姿态推理</li>
                 <li>自由手绘笔刷</li>
                 <li>图层管理</li>
-                <li>文生图贴纸模式</li>
               </ul>
             </div>
           </div>
@@ -180,7 +206,7 @@ function App() {
 
       {/* 底部信息 */}
       <footer className="footer">
-        <p>SpeakSketch - 72小时实战比赛 Demo</p>
+        <p>SpeakSketch - 纯语音结构化绘图工具</p>
         <p>技术栈: Vite + React + TypeScript + Fabric.js + Zustand</p>
       </footer>
     </div>
