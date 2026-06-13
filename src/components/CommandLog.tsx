@@ -113,6 +113,25 @@ export function CommandLog() {
     }
   };
 
+  const getLanguageText = (language?: string): string => {
+    const langMap: Record<string, string> = {
+      zh: '中文',
+      en: 'English',
+      mixed: 'mixed',
+      unknown: 'unknown',
+    };
+    return language ? langMap[language] || language : '';
+  };
+
+  const getLanguageColor = (language?: string): string => {
+    switch (language) {
+      case 'zh': return '#22c55e';
+      case 'en': return '#3b82f6';
+      case 'mixed': return '#f59e0b';
+      default: return '#6b7280';
+    }
+  };
+
   return (
     <div className="command-log">
       <h3 className="section-title">指令日志</h3>
@@ -139,14 +158,24 @@ export function CommandLog() {
                 <div className="log-content">
                   <span className="log-text">{log.rawText}</span>
                 </div>
-                {parseType && (
+                {(parseType || log.language) && (
                   <div className="log-parse-type">
-                    <span 
-                      className="parse-type-tag"
-                      style={{ background: getParseTypeColor(parseType) }}
-                    >
-                      {parseType}
-                    </span>
+                    {parseType && (
+                      <span 
+                        className="parse-type-tag"
+                        style={{ background: getParseTypeColor(parseType) }}
+                      >
+                        {parseType}
+                      </span>
+                    )}
+                    {log.language && (
+                      <span 
+                        className="language-tag"
+                        style={{ background: getLanguageColor(log.language) }}
+                      >
+                        {getLanguageText(log.language)}
+                      </span>
+                    )}
                   </div>
                 )}
                 {log.actionCount !== undefined && log.actionCount > 0 && (

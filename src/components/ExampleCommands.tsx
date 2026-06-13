@@ -1,6 +1,6 @@
 import { useAppStore } from '../store/useAppStore';
 import { useSpeechSynthesis } from '../hooks/useSpeechSynthesis';
-import { parse } from '../core/localParser';
+import { parseBilingualCommand } from '../core/bilingualParser';
 import { commandExecutor } from '../core/commandExecutor';
 
 // 按用户要求分组
@@ -52,6 +52,26 @@ const commandGroups = [
       '重放全部',
     ]
   },
+  {
+    title: 'English Commands',
+    commands: [
+      'draw a red circle',
+      'draw a blue rectangle',
+      'add text "AI drawing"',
+      'draw a man',
+      'draw a cat',
+      'draw a red car',
+      'draw birds in the sky',
+      'change the last shape to blue',
+      'make the biggest shape bigger',
+      'delete the leftmost shape',
+      'undo',
+      'redo',
+      'clear the canvas',
+      'export image',
+      'replay all',
+    ]
+  },
 ];
 
 export function ExampleCommands() {
@@ -61,19 +81,19 @@ export function ExampleCommands() {
   const handleClick = (text: string) => {
     const startTime = Date.now();
     
-    // Add executing log and get its id
     const logId = addLog({ commandId: '', rawText: text, status: 'executing' });
     
-    const command = parse(text);
+    const { command, language } = parseBilingualCommand(text);
     
-    if (command.actions.length === 0) {
+    if (!command || command.actions.length === 0) {
       const execTime = Date.now() - startTime;
       updateLog(logId, {
-        commandId: command.id,
+        commandId: command?.id || '',
         status: 'error',
         error: '我没有理解这条指令，请换一种说法',
         actionCount: 0,
-        executionTime: execTime
+        executionTime: execTime,
+        language
       });
       speak('我没有理解这条指令，请换一种说法');
       return;
@@ -92,7 +112,8 @@ export function ExampleCommands() {
         actionTypes,
         actionCount: command.actions.length,
         executionTime: execTime,
-        relationType: (command as any).relationType
+        relationType: (command as any).relationType,
+        language
       });
       speak(`已完成：${text}`);
     } else {
@@ -103,7 +124,8 @@ export function ExampleCommands() {
         actionTypes,
         actionCount: command.actions.length,
         executionTime: execTime,
-        relationType: (command as any).relationType
+        relationType: (command as any).relationType,
+        language
       });
       speak('执行失败');
     }
