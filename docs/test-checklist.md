@@ -1,5 +1,29 @@
 # SpeakSketch 测试清单
 
+## 最终提交测试清单
+
+### 启动与构建
+- [ ] 前端 `npm run build`
+- [ ] 前端 `npm run dev`
+- [ ] 后端 `npm install`
+- [ ] 后端 `npm run dev`
+
+### 后端接口
+- [ ] `GET /api/health`
+- [ ] `POST /api/asr` mock
+- [ ] `POST /api/style-image` mock
+
+### 核心功能
+- [ ] 中文指令：`画一个红色圆形`
+- [ ] 英文指令：`draw a blue rectangle`
+- [ ] 空间关系：`画一个男人站在树旁边`
+- [ ] Demo 模式
+- [ ] 撤销 / 重做
+- [ ] 重放
+- [ ] 导出
+- [ ] Mock 图像生成
+- [ ] 未配置 API 不崩溃
+
 ## 环境测试
 
 ### 基础环境

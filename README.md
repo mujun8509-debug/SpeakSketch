@@ -60,6 +60,12 @@ VITE_IMAGE_API_URL=http://localhost:3001/api/style-image
 - 不要提交真实 `.env`
 - 当前真实 provider 接入将在后续独立 PR 中完成
 
+## 最终提交说明
+
+- [最终提交说明](./docs/final-submission.md)
+- [演示脚本](./docs/demo-script.md)
+- [测试清单](./docs/test-checklist.md)
+
 ## 🎨 支持的指令类型
 
 ### 基础图形
