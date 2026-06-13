@@ -3,7 +3,7 @@ import { useAppStore } from '../store/useAppStore';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { useSpeechSynthesis } from '../hooks/useSpeechSynthesis';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
-import { parse } from '../core/localParser';
+import { parseBilingualCommand } from '../core/bilingualParser';
 import { commandExecutor } from '../core/commandExecutor';
 import {
   getASRStatus,
@@ -142,16 +142,17 @@ export function VoicePanel() {
     const logId = addLog({ commandId: '', rawText: text, status: 'executing' });
     
     try {
-      const command = parse(text);
+      const { command, language } = parseBilingualCommand(text);
       
-      if (command.actions.length === 0) {
+      if (!command || command.actions.length === 0) {
         const execTime = Date.now() - startTime;
         updateLog(logId, {
-          commandId: command.id,
+          commandId: command?.id || '',
           status: 'error',
           error: '我没有理解这条指令，请换一种说法',
           actionCount: 0,
-          executionTime: execTime
+          executionTime: execTime,
+          language
         });
         speak('我没有理解这条指令，请换一种说法');
         return;
@@ -172,7 +173,8 @@ export function VoicePanel() {
           actionTypes,
           actionCount: command.actions.length,
           executionTime: execTime,
-          relationType: (command as any).relationType
+          relationType: (command as any).relationType,
+          language
         });
         speak(`已完成：${text}`);
       } else {
@@ -183,7 +185,8 @@ export function VoicePanel() {
           actionTypes,
           actionCount: command.actions.length,
           executionTime: execTime,
-          relationType: (command as any).relationType
+          relationType: (command as any).relationType,
+          language
         });
         speak('执行失败，请检查指令格式');
       }
@@ -191,9 +194,12 @@ export function VoicePanel() {
       const execTime = Date.now() - startTime;
       const errorMsg = err instanceof Error ? err.message : '执行异常';
       updateLog(logId, {
+        commandId: '',
         status: 'error',
         error: `执行异常: ${errorMsg}`,
-        executionTime: execTime
+        actionCount: 0,
+        executionTime: execTime,
+        language: 'unknown'
       });
       speak('执行过程中出现异常');
     }

@@ -59,17 +59,34 @@ export function useSpeechRecognition({
 }: UseSpeechRecognitionProps) {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
+  const [error, setError] = useState('');
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const finalTranscriptRef = useRef<string>('');
+  const isStartingRef = useRef(false);
 
   useEffect(() => {
-    const win = window as WindowWithSpeechRecognition;
-    setIsSupported(!!win.webkitSpeechRecognition || !!win.SpeechRecognition);
+    try {
+      const win = window as WindowWithSpeechRecognition;
+      const hasRecognition = !!win.webkitSpeechRecognition || !!win.SpeechRecognition;
+      setIsSupported(hasRecognition);
+      if (!hasRecognition) {
+        setError('浏览器不支持语音识别，您可以使用下方调试输入框输入指令');
+      }
+    } catch {
+      setIsSupported(false);
+      setError('无法检测语音识别支持，请使用调试输入框');
+    }
   }, []);
 
   const startListening = useCallback(() => {
+    if (isStartingRef.current) {
+      return;
+    }
+    
     if (!isSupported) {
-      onError?.('浏览器不支持语音识别');
+      const msg = '浏览器不支持语音识别，请使用下方调试输入框';
+      setError(msg);
+      onError?.(msg);
       return;
     }
 
@@ -77,68 +94,114 @@ export function useSpeechRecognition({
     const SpeechRecognition = win.webkitSpeechRecognition || win.SpeechRecognition;
     
     if (!SpeechRecognition) {
-      onError?.('浏览器不支持语音识别');
+      const msg = '无法初始化语音识别，请使用下方调试输入框';
+      setError(msg);
+      onError?.(msg);
       return;
     }
 
-    // Abort previous instance if exists
-    if (recognitionRef.current) {
-      recognitionRef.current.abort();
-    }
+    isStartingRef.current = true;
+    setError('');
 
-    finalTranscriptRef.current = '';
+    try {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
 
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.lang = 'zh-CN';
+      finalTranscriptRef.current = '';
 
-    recognition.onstart = () => {
-      setIsListening(true);
-      onStart?.();
-    };
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'zh-CN';
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      let interimTranscript = '';
-      let finalPart = '';
+      recognition.onstart = () => {
+        setIsListening(true);
+        setError('');
+        onStart?.();
+      };
 
-      for (let i = 0; i < event.results.length; i++) {
-        const result = event.results[i];
-        if (result.isFinal) {
-          finalPart += result[0].transcript;
-        } else {
-          interimTranscript += result[0].transcript;
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
+        try {
+          let interimTranscript = '';
+          let finalPart = '';
+
+          for (let i = 0; i < event.results.length; i++) {
+            const result = event.results[i];
+            if (result.isFinal) {
+              finalPart += result[0].transcript;
+            } else {
+              interimTranscript += result[0].transcript;
+            }
+          }
+
+          if (finalPart) {
+            finalTranscriptRef.current = finalPart;
+            onResult(finalPart, true);
+          } else if (interimTranscript) {
+            onResult(interimTranscript, false);
+          }
+        } catch (resultError) {
+          console.error('语音识别结果处理错误:', resultError);
         }
-      }
+      };
 
-      if (finalPart) {
-        finalTranscriptRef.current = finalPart;
-        onResult(finalPart, true);
-      } else if (interimTranscript) {
-        onResult(interimTranscript, false);
-      }
-    };
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+        setIsListening(false);
+        isStartingRef.current = false;
+        
+        let errorMsg = '';
+        switch (event.error) {
+          case 'not-allowed':
+            errorMsg = '请在浏览器设置中允许麦克风权限，或使用下方调试输入框输入指令';
+            break;
+          case 'no-speech':
+            errorMsg = '未检测到语音输入，请尝试重新说话';
+            break;
+          case 'aborted':
+            errorMsg = '语音识别已取消';
+            break;
+          case 'network':
+            errorMsg = '网络连接异常，请检查网络或使用调试输入框';
+            break;
+          case 'service-not-allowed':
+            errorMsg = '语音服务不可用，请使用调试输入框';
+            break;
+          default:
+            errorMsg = `语音识别错误: ${event.error}`;
+        }
+        
+        setError(errorMsg);
+        onError?.(errorMsg);
+        recognition.abort();
+      };
 
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      setIsListening(false);
-      const errorMsg = event.error === 'not-allowed' ? '请允许麦克风权限' : event.error;
-      onError?.(errorMsg);
-      recognition.abort();
-    };
+      recognition.onend = () => {
+        setIsListening(false);
+        isStartingRef.current = false;
+        onEnd?.(finalTranscriptRef.current);
+        recognitionRef.current = null;
+      };
 
-    recognition.onend = () => {
-      setIsListening(false);
-      onEnd?.(finalTranscriptRef.current);
-      recognitionRef.current = null;
-    };
-
-    recognitionRef.current = recognition;
-    recognition.start();
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (initError) {
+      isStartingRef.current = false;
+      const msg = '语音识别初始化失败，请使用调试输入框';
+      setError(msg);
+      onError?.(msg);
+      console.error('语音识别初始化错误:', initError);
+    }
   }, [isSupported, onResult, onStart, onEnd, onError]);
 
   const stopListening = useCallback(() => {
+    isStartingRef.current = false;
     if (recognitionRef.current) {
-      recognitionRef.current.abort();
+      try {
+        recognitionRef.current.abort();
+      } catch {
+        // 忽略中止错误
+      }
       recognitionRef.current = null;
     }
     setIsListening(false);
@@ -148,6 +211,8 @@ export function useSpeechRecognition({
   return {
     isListening,
     isSupported,
+    isError: !!error,
+    error,
     startListening,
     stopListening,
   };
