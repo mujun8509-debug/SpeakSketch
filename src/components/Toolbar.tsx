@@ -2,18 +2,58 @@ import { useAppStore } from '../store/useAppStore';
 import { useSpeechSynthesis } from '../hooks/useSpeechSynthesis';
 import { parse } from '../core/localParser';
 import { commandExecutor } from '../core/commandExecutor';
+import { historyManager } from '../core/historyManager';
 
 export function Toolbar() {
-  const { addLog, addCommand } = useAppStore();
+  const { addLog, updateLog, addCommand } = useAppStore();
   const { speak } = useSpeechSynthesis();
 
   const handleAction = (action: string) => {
-    addLog({ commandId: '', rawText: action, status: 'executing' });
+    const startTime = Date.now();
+    const logId = addLog({ commandId: '', rawText: action, status: 'executing' });
+    
+    if (action === '撤销') {
+      if (!historyManager.canUndo()) {
+        updateLog(logId, {
+          status: 'error',
+          error: '没有可撤销的操作',
+          executionTime: Date.now() - startTime
+        });
+        speak('没有可撤销的操作');
+        return;
+      }
+    } else if (action === '重做') {
+      if (!historyManager.canRedo()) {
+        updateLog(logId, {
+          status: 'error',
+          error: '没有可重做的操作',
+          executionTime: Date.now() - startTime
+        });
+        speak('没有可重做的操作');
+        return;
+      }
+    } else if (action === '导出图片') {
+      const canvas = commandExecutor.getCanvas();
+      if (!canvas || canvas.getObjects().length === 0) {
+        updateLog(logId, {
+          status: 'error',
+          error: '请先完成绘图后再导出',
+          executionTime: Date.now() - startTime
+        });
+        speak('请先完成绘图后再导出');
+        return;
+      }
+    }
     
     const command = parse(action);
     
     if (command.actions.length === 0) {
-      addLog({ commandId: command.id, rawText: action, status: 'error', error: '无法识别的指令' });
+      updateLog(logId, {
+        commandId: command.id,
+        status: 'error',
+        error: '无法识别的指令',
+        executionTime: Date.now() - startTime
+      });
       speak('无法识别的指令');
       return;
     }
@@ -21,12 +61,24 @@ export function Toolbar() {
     addCommand(command);
     
     const success = commandExecutor.execute(command);
+    const execTime = Date.now() - startTime;
     
     if (success) {
-      addLog({ commandId: command.id, rawText: action, status: 'success' });
-      speak(action === '清空画布' ? '画布已清空' : action === '撤销' ? '已撤销' : '已重做');
+      updateLog(logId, {
+        commandId: command.id,
+        status: 'success',
+        actionTypes: command.actions.map(a => a.type),
+        actionCount: command.actions.length,
+        executionTime: execTime
+      });
+      speak(action === '清空画布' ? '画布已清空' : action === '撤销' ? '已撤销' : action === '重做' ? '已重做' : '已完成');
     } else {
-      addLog({ commandId: command.id, rawText: action, status: 'error', error: '执行失败' });
+      updateLog(logId, {
+        commandId: command.id,
+        status: 'error',
+        error: '执行失败',
+        executionTime: execTime
+      });
       speak('执行失败');
     }
   };

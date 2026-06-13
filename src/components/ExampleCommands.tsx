@@ -64,48 +64,61 @@ export function ExampleCommands() {
     // Add executing log and get its id
     const logId = addLog({ commandId: '', rawText: text, status: 'executing' });
     
-    const command = parse(text);
-    
-    if (command.actions.length === 0) {
+    try {
+      const command = parse(text);
+      
+      if (command.actions.length === 0) {
+        const execTime = Date.now() - startTime;
+        updateLog(logId, {
+          commandId: command.id,
+          status: 'error',
+          error: '暂不支持该指令，请尝试其他示例',
+          actionCount: 0,
+          executionTime: execTime
+        });
+        speak('暂不支持该指令，请尝试其他示例');
+        return;
+      }
+      
+      addCommand(command);
+      const actionTypes = command.actions.map(a => a.type);
+      
+      const success = commandExecutor.execute(command);
       const execTime = Date.now() - startTime;
+      
+      if (success) {
+        updateLog(logId, {
+          commandId: command.id,
+          status: 'success',
+          actionTypes,
+          actionCount: command.actions.length,
+          executionTime: execTime,
+          relationType: (command as any).relationType
+        });
+        speak(`已完成：${text}`);
+      } else {
+        updateLog(logId, {
+          commandId: command.id,
+          status: 'error',
+          error: '执行失败，请检查指令格式',
+          actionTypes,
+          actionCount: command.actions.length,
+          executionTime: execTime,
+          relationType: (command as any).relationType
+        });
+        speak('执行失败');
+      }
+    } catch (error) {
+      const execTime = Date.now() - startTime;
+      const errorMsg = error instanceof Error ? error.message : '未知错误';
       updateLog(logId, {
-        commandId: command.id,
         status: 'error',
-        error: '我没有理解这条指令，请换一种说法',
+        error: `执行异常: ${errorMsg}`,
         actionCount: 0,
         executionTime: execTime
       });
-      speak('我没有理解这条指令，请换一种说法');
-      return;
-    }
-    
-    addCommand(command);
-    const actionTypes = command.actions.map(a => a.type);
-    
-    const success = commandExecutor.execute(command);
-    const execTime = Date.now() - startTime;
-    
-    if (success) {
-      updateLog(logId, {
-        commandId: command.id,
-        status: 'success',
-        actionTypes,
-        actionCount: command.actions.length,
-        executionTime: execTime,
-        relationType: (command as any).relationType
-      });
-      speak(`已完成：${text}`);
-    } else {
-      updateLog(logId, {
-        commandId: command.id,
-        status: 'error',
-        error: '执行失败',
-        actionTypes,
-        actionCount: command.actions.length,
-        executionTime: execTime,
-        relationType: (command as any).relationType
-      });
-      speak('执行失败');
+      speak('执行过程中出现异常');
+      console.error('示例指令执行错误:', error);
     }
   };
 

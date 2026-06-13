@@ -5,34 +5,68 @@ import { commandExecutor } from '../core/commandExecutor';
 import { historyManager } from '../core/historyManager';
 
 export function ReplayPanel() {
-  const { commandHistory } = useAppStore();
+  const { commandHistory, addLog, updateLog } = useAppStore();
   const { speak } = useSpeechSynthesis();
   const [isReplaying, setIsReplaying] = useState(false);
 
   const handleReplay = async () => {
-    if (isReplaying || commandHistory.length === 0) return;
+    if (isReplaying) {
+      speak('正在重放中，请稍候');
+      return;
+    }
+    
+    if (commandHistory.length === 0) {
+      speak('没有可重放的历史记录');
+      return;
+    }
+    
+    const startTime = Date.now();
+    const logId = addLog({ commandId: '', rawText: '重放全部', status: 'executing' });
     
     setIsReplaying(true);
     
-    // Clear canvas before replay
-    historyManager.clear();
-    
-    speak('开始重放创作过程');
-    
-    for (let i = 0; i < commandHistory.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      // Only execute, don't add to commandHistory (avoid duplication)
-      commandExecutor.execute(commandHistory[i]);
+    try {
+      speak('正在清空画布并开始重放');
+      historyManager.clear();
+      
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      for (let i = 0; i < commandHistory.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        commandExecutor.execute(commandHistory[i]);
+      }
+      
+      const execTime = Date.now() - startTime;
+      updateLog(logId, {
+        status: 'success',
+        actionCount: commandHistory.length,
+        executionTime: execTime
+      });
+      speak('创作过程重放完成');
+    } catch (error) {
+      const execTime = Date.now() - startTime;
+      updateLog(logId, {
+        status: 'error',
+        error: '重放过程中出现错误',
+        executionTime: execTime
+      });
+      speak('重放过程中出现错误');
+    } finally {
+      setIsReplaying(false);
     }
-    
-    speak('创作过程重放完成');
-    setIsReplaying(false);
   };
 
   const handleReplaySingle = (command: typeof commandHistory[0]) => {
-    // Only execute, don't add to commandHistory
-    commandExecutor.execute(command);
-    speak('已完成');
+    if (isReplaying) {
+      speak('正在重放中，请稍候');
+      return;
+    }
+    try {
+      commandExecutor.execute(command);
+      speak('已完成');
+    } catch (error) {
+      speak('执行失败');
+    }
   };
 
   return (
