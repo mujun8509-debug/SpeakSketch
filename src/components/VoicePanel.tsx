@@ -297,8 +297,8 @@ export function VoicePanel() {
         {!isSupported && asrMode === 'browser' && (
           <p className="warning">浏览器不支持语音识别</p>
         )}
-        {!audioRecorder.isSupported && asrMode === 'cloud' && (
-          <p className="warning">{audioRecorder.error || '浏览器不支持音频录制'}</p>
+        {audioRecorder.error && asrMode === 'cloud' && (
+          <p className="warning">{audioRecorder.error}</p>
         )}
         {error && (
           <p className="error">{error}</p>
