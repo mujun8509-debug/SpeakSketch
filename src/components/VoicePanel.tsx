@@ -44,7 +44,7 @@ export function VoicePanel() {
     setIsListening(false);
   };
 
-  const { startListening, isSupported } = useSpeechRecognition({
+  const { startListening, isSupported, error: speechError } = useSpeechRecognition({
     onResult: handleResult,
     onStart: handleStart,
     onEnd: handleEnd,
@@ -136,8 +136,8 @@ export function VoicePanel() {
           </svg>
           <span>{isListening ? '正在听...' : '开始语音'}</span>
         </button>
-        {!isSupported && (
-          <p className="warning">浏览器不支持语音识别</p>
+        {!isSupported && speechError && (
+          <p className="warning">{speechError}</p>
         )}
         {error && (
           <p className="error">{error}</p>
