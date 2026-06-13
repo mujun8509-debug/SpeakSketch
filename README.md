@@ -35,6 +35,31 @@ npm run dev
 npm run build
 ```
 
+## 🧩 后端代理说明
+
+仓库新增 `server/` 目录作为最小后端代理骨架，用于后续安全接入讯飞 ASR 和 GPT 图像生成能力。当前后端只提供 mock 接口，不连接真实讯飞 WebSocket，也不调用真实 OpenAI 图像生成 API。
+
+后端本地启动：
+
+```bash
+cd server
+npm install
+npm run dev
+```
+
+前端 `.env` 只需要配置后端代理地址：
+
+```env
+VITE_ASR_API_URL=http://localhost:3001/api/asr
+VITE_IMAGE_API_URL=http://localhost:3001/api/style-image
+```
+
+安全说明：
+- 讯飞 APPID、APIKey、APISecret 只允许放在后端 `.env` 中
+- OpenAI API Key 只允许放在后端 `.env` 中
+- 不要提交真实 `.env`
+- 当前真实 provider 接入将在后续独立 PR 中完成
+
 ## 🎨 支持的指令类型
 
 ### 基础图形
@@ -172,7 +197,7 @@ src/
 
 ## 🎨 AI 风格化成品
 
-本项目支持 AI 图像风格化功能，将语音绘制的结构化草图转化为高质量成品图。
+本项目预留 AI 图像风格化后端代理能力，可在后续接入真实 provider 后将语音绘制的结构化草图转化为风格化成品图。当前 `server/` 骨架先返回 Mock 结果，不调用真实 OpenAI 图像生成 API。
 
 ### 功能定位
 
@@ -228,7 +253,7 @@ Content-Type: application/json
 在项目根目录创建 `.env` 文件：
 
 ```
-VITE_IMAGE_API_URL=http://your-backend-server/api/image/generate
+VITE_IMAGE_API_URL=http://localhost:3001/api/style-image
 ```
 
 ### Mock 模式
@@ -244,15 +269,15 @@ VITE_IMAGE_API_URL=http://your-backend-server/api/image/generate
 - 前端不保存 OpenAI API Key
 - 前端不直接调用 OpenAI API
 - 前端只通过 `VITE_IMAGE_API_URL` 调用后端接口
-- 后端负责调用 OpenAI 图像生成 / 编辑 API
+- 当前后端代理骨架先返回 Mock 结果，真实 OpenAI 图像生成 / 编辑 API 将在后续 PR 接入
 
 ## 🎤 讯飞 ASR 接入说明
 
-本项目支持讯飞实时语音听写作为可选的语音识别方案。
+本项目预留讯飞实时语音听写的后端代理接口作为可选语音识别方案。当前 `server/` 骨架先返回 Mock 结果，不连接真实讯飞 WebSocket。
 
 ### 接入方式
 
-- **讯飞实时语音听写**: 用于短语音指令识别，提供更稳定的识别效果
+- **讯飞实时语音听写**: 后续接入后用于短语音指令识别
 - **前端不保存密钥**: 讯飞 APPID、APIKey、APISecret 仅在后端使用，前端不接触
 - **需要后端代理**: 前端通过自有后端接口代理讯飞 WebSocket 连接
 - **前端调用方式**: 通过环境变量 `VITE_ASR_API_URL` 调用后端接口
@@ -280,13 +305,13 @@ Content-Type: multipart/form-data
 在项目根目录创建 `.env` 文件：
 
 ```
-VITE_ASR_API_URL=http://your-backend-server/api/asr
+VITE_ASR_API_URL=http://localhost:3001/api/asr
 ```
 
 ### 识别模式
 
 - **浏览器识别**: 使用 Web Speech API，无需配置，兼容性依赖浏览器
-- **云端识别**: 使用讯飞实时听写，需要配置后端接口，识别更稳定
+- **云端识别**: 通过后端代理接口调用；当前骨架返回 Mock，真实讯飞将在后续 PR 接入
 - **自动模式**: 优先使用云端识别，失败时回退到浏览器识别
 
 ### 语言模式
