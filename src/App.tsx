@@ -7,6 +7,7 @@ import { Toolbar } from './components/Toolbar';
 import { ReplayPanel } from './components/ReplayPanel';
 import { AIStylePanel } from './components/AIStylePanel';
 import { AIResultPreview, AIResultData } from './components/AIResultPreview';
+import { ASRSettingsPanel } from './components/ASRSettingsPanel';
 import { useSpeechSynthesis } from './hooks/useSpeechSynthesis';
 import { parse } from './core/localParser';
 import { commandExecutor } from './core/commandExecutor';
@@ -31,42 +32,60 @@ function App() {
 
   // Demo 模式执行
   const runDemoMode = async () => {
-    if (isDemoMode) return;
+    if (isDemoMode) {
+      speak('演示正在进行中，请稍候');
+      return;
+    }
     setIsDemoMode(true);
 
-    for (const text of DEMO_COMMANDS) {
-      await new Promise(resolve => setTimeout(resolve, 800));
+    try {
+      speak('开始演示，请稍候');
       
-      const startTime = Date.now();
-      const logId = addLog({ commandId: '', rawText: text, status: 'executing' });
-      
-      const command = parse(text);
-      if (command.actions.length > 0) {
-        addCommand(command);
-        const actionTypes = command.actions.map(a => a.type);
-        const success = commandExecutor.execute(command);
-        const execTime = Date.now() - startTime;
+      for (const text of DEMO_COMMANDS) {
+        await new Promise(resolve => setTimeout(resolve, 800));
         
-        updateLog(logId, {
-          commandId: command.id,
-          status: success ? 'success' : 'error',
-          actionTypes,
-          actionCount: command.actions.length,
-          executionTime: execTime,
-          relationType: (command as any).relationType,
-          error: success ? undefined : '执行失败'
-        });
-      } else {
-        updateLog(logId, {
-          status: 'error',
-          error: '无法解析指令',
-          executionTime: Date.now() - startTime
-        });
+        const startTime = Date.now();
+        const logId = addLog({ commandId: '', rawText: text, status: 'executing' });
+        
+        try {
+          const command = parse(text);
+          if (command.actions.length > 0) {
+            addCommand(command);
+            const actionTypes = command.actions.map(a => a.type);
+            const success = commandExecutor.execute(command);
+            const execTime = Date.now() - startTime;
+            
+            updateLog(logId, {
+              commandId: command.id,
+              status: success ? 'success' : 'error',
+              actionTypes,
+              actionCount: command.actions.length,
+              executionTime: execTime,
+              relationType: (command as any).relationType,
+              error: success ? undefined : '执行失败'
+            });
+          } else {
+            updateLog(logId, {
+              status: 'error',
+              error: '无法解析指令',
+              executionTime: Date.now() - startTime
+            });
+          }
+        } catch (error) {
+          updateLog(logId, {
+            status: 'error',
+            error: '执行过程中出现错误',
+            executionTime: Date.now() - startTime
+          });
+        }
       }
-    }
 
-    speak('演示完成');
-    setIsDemoMode(false);
+      speak('演示完成');
+    } catch (error) {
+      speak('演示过程中出现错误');
+    } finally {
+      setIsDemoMode(false);
+    }
   };
 
   // AI 生成完成回调
@@ -151,6 +170,7 @@ function App() {
 
         {/* 右侧控制台区域 */}
         <aside className="sidebar">
+          <ASRSettingsPanel />
           <VoicePanel />
           <ExampleCommands />
           <CommandLog />

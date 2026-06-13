@@ -225,6 +225,16 @@ body {
   animation: pulse 1.5s ease-in-out infinite;
 }
 
+.mic-button.recording {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.mic-button.processing {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
 @keyframes pulse {
   0%, 100% {
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
@@ -678,6 +688,189 @@ body {
   .example-list {
     grid-template-columns: 1fr;
   }
+}
+
+/* ASR 设置面板 */
+.asr-settings-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  margin-bottom: 15px;
+}
+
+.asr-settings-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.asr-settings-toggle:hover {
+  background: #e5e7eb;
+}
+
+.asr-settings-content {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.asr-setting-group {
+  margin-bottom: 12px;
+}
+
+.asr-setting-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.asr-setting-options {
+  display: flex;
+  gap: 8px;
+}
+
+.asr-option {
+  padding: 6px 12px;
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.asr-option:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.asr-option.active {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+}
+
+.asr-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.asr-option-warning {
+  font-size: 0.7rem;
+  color: #f59e0b;
+  margin-left: 4px;
+}
+
+.asr-status-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.asr-status-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.asr-status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.asr-status-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+}
+
+.asr-status-label {
+  color: #6b7280;
+}
+
+.asr-status-value {
+  color: #374151;
+  font-weight: 500;
+}
+
+.asr-status-value.configured {
+  color: #10b981;
+}
+
+.asr-status-value.not-configured {
+  color: #f59e0b;
+}
+
+.asr-notice {
+  margin-top: 12px;
+  padding: 10px;
+  background: #fef3c7;
+  border-radius: 8px;
+  border: 1px solid #f59e0b;
+}
+
+.asr-notice p {
+  font-size: 0.75rem;
+  color: #92400e;
+  margin-bottom: 4px;
+}
+
+.asr-notice p:last-child {
+  margin-bottom: 0;
+}
+
+/* ASR 模式切换 */
+.asr-mode-switch {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mode-button {
+  flex: 1;
+  padding: 8px 12px;
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mode-button:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.mode-button.active {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+}
+
+.mode-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mode-warning {
+  font-size: 0.7rem;
+  color: #f59e0b;
+  margin-left: 4px;
 }
 
 /* AI Style Panel */
