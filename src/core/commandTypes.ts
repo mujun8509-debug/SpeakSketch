@@ -63,6 +63,7 @@ export interface CommandLog {
   timestamp: number;
   executionTime?: number;
   relationType?: string;
+  language?: 'zh' | 'en' | 'mixed' | 'unknown';
 }
 
 export interface CanvasShape {
