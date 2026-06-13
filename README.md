@@ -91,7 +91,10 @@ src/
 │   ├── ReplayPanel.tsx  # 重放面板
 │   └── Toolbar.tsx      # 工具栏
 ├── core/                # 核心逻辑
-│   ├── localParser.ts   # 指令解析器
+│   ├── localParser.ts   # 中文指令解析器
+│   ├── englishCommandParser.ts # 英文指令解析器
+│   ├── bilingualParser.ts # 双语解析统一入口
+│   ├── languageNormalizer.ts # 词汇归一化模块
 │   ├── relationParser.ts # 空间关系解析
 │   ├── commandExecutor.ts # 指令执行器
 │   ├── shapeFactory.ts  # 图形工厂
