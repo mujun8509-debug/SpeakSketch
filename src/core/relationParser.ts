@@ -135,58 +135,30 @@ function calculatePosition(
     case 'below':
       return { x: refX, y: refY + offset };
     case 'sky':
-      return { 
-        x: 100 + Math.random() * 600, 
-        y: LAYOUT_OFFSET.sky_y + Math.random() * 80 
-      };
+      return { x: 360, y: LAYOUT_OFFSET.sky_y + 30 };
     case 'ground':
-      return { 
-        x: 100 + Math.random() * 600, 
-        y: LAYOUT_OFFSET.ground_y + Math.random() * 80 
-      };
+      return { x: 400, y: LAYOUT_OFFSET.ground_y + 30 };
     case 'river_top':
-      return { x: refX, y: LAYOUT_OFFSET.river_y };
+      return isSubject
+        ? { x: refX, y: refY - 55 }
+        : { x: refX, y: LAYOUT_OFFSET.river_y + 60 };
     // 方位系统
     case 'north':
-      return { 
-        x: LAYOUT_OFFSET.north_x + (Math.random() - 0.5) * 100, 
-        y: LAYOUT_OFFSET.north_y + Math.random() * 50 
-      };
+      return { x: LAYOUT_OFFSET.north_x, y: LAYOUT_OFFSET.north_y };
     case 'south':
-      return { 
-        x: LAYOUT_OFFSET.south_x + (Math.random() - 0.5) * 100, 
-        y: LAYOUT_OFFSET.south_y + Math.random() * 50 
-      };
+      return { x: LAYOUT_OFFSET.south_x, y: LAYOUT_OFFSET.south_y };
     case 'east':
-      return { 
-        x: LAYOUT_OFFSET.east_x + Math.random() * 50, 
-        y: LAYOUT_OFFSET.east_y + (Math.random() - 0.5) * 100 
-      };
+      return { x: LAYOUT_OFFSET.east_x, y: LAYOUT_OFFSET.east_y };
     case 'west':
-      return { 
-        x: LAYOUT_OFFSET.west_x + Math.random() * 50, 
-        y: LAYOUT_OFFSET.west_y + (Math.random() - 0.5) * 100 
-      };
+      return { x: LAYOUT_OFFSET.west_x, y: LAYOUT_OFFSET.west_y };
     case 'northeast':
-      return { 
-        x: LAYOUT_OFFSET.north_x + Math.random() * 150, 
-        y: LAYOUT_OFFSET.north_y + Math.random() * 80 
-      };
+      return { x: 560, y: 170 };
     case 'southeast':
-      return { 
-        x: LAYOUT_OFFSET.south_x + Math.random() * 150, 
-        y: LAYOUT_OFFSET.south_y - Math.random() * 80 
-      };
+      return { x: 560, y: 470 };
     case 'northwest':
-      return { 
-        x: LAYOUT_OFFSET.west_x + Math.random() * 100, 
-        y: LAYOUT_OFFSET.north_y + Math.random() * 80 
-      };
+      return { x: 240, y: 170 };
     case 'southwest':
-      return { 
-        x: LAYOUT_OFFSET.west_x + Math.random() * 100, 
-        y: LAYOUT_OFFSET.south_y - Math.random() * 80 
-      };
+      return { x: 240, y: 470 };
     // 远近关系
     case 'far':
       // 远离中心
@@ -228,17 +200,17 @@ export function parseRelation(text: string): RelationResult | null {
   // 模式匹配 - 支持更多空间关系
   const patterns = [
     // 基本空间关系
-    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:站在?|在)(.{1,10})(?:旁边|附近|左边|右侧|右面|上方|顶上|下方|底下)/g,
-    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:停|飞|站)在(.{1,10})(?:旁边|天空|空中|地面|地上|河上|水上|湖面)/g,
-    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在|飞到|跑到)(.{1,10})(?:旁边|天空|地面|河上|水上)/g,
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:站在?|在)(.{1,10})(?:旁边|附近|左边|右侧|右面|上方|顶上|下方|底下)/,
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:停|飞|站)在(.{1,10})(?:旁边|天空|空中|地面|地上|河上|水上|湖面)/,
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在|飞到|跑到)(.{1,10})(?:旁边|天空|地面|河上|水上)/,
     // 方位词模式
-    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在|飞向)(东边|东方|西面|西边|南方|北边|东北|东南|西北|西南)/g,
-    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:的)(东边|东方|西面|西边|南方|北边|东北|东南|西北|西南)(?:有|是)/g,
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在|飞向)(东边|东方|西面|西边|南方|北边|东北|东南|西北|西南)/,
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:的)(东边|东方|西面|西边|南方|北边|东北|东南|西北|西南)(?:有|是)/,
     // 远近关系模式
-    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在)(.{1,10})(?:远处|远方|近处|附近)/g,
-    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在)(远处|远方|近处)/g,
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在)(.{1,10})(?:远处|远方|近处|附近)/,
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在)(远处|远方|近处)/,
     // 简化模式
-    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:的)(旁边|附近|左边|右边)/g,
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:的)(旁边|附近|左边|右边)/,
   ];
   
   for (const pattern of patterns) {
@@ -341,6 +313,7 @@ export function parseRelation(text: string): RelationResult | null {
     payload: {
       x: subjectPos.x,
       y: subjectPos.y,
+      count: text.includes('几只') && subjectObj.mapping.type === 'draw_bird' ? 3 : undefined,
     }
   };
   actions.push(subjectAction);
