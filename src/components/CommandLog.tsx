@@ -12,15 +12,6 @@ export function CommandLog() {
     return `${ms}ms`;
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'success': return '#22c55e';
-      case 'error': return '#ef4444';
-      case 'executing': return '#f59e0b';
-      default: return '#6b7280';
-    }
-  };
-
   const getStatusText = (status: string) => {
     switch (status) {
       case 'success': return '成功';
@@ -135,7 +126,7 @@ export function CommandLog() {
   return (
     <div className="command-log panel-card">
       <h3 className="section-title">指令日志</h3>
-      <div className="log-list">
+      <div className="command-log-list">
         {logs.length === 0 ? (
           <p className="empty">暂无指令记录</p>
         ) : (
@@ -145,9 +136,8 @@ export function CommandLog() {
               <div key={log.id} className="log-item">
                 <div className="log-header">
                   <span className="log-time">{formatTime(log.timestamp)}</span>
-                  <span 
-                    className="log-status"
-                    style={{ color: getStatusColor(log.status) }}
+                  <span
+                    className={`log-status ${log.status}`}
                   >
                     {getStatusText(log.status)}
                   </span>
@@ -161,7 +151,7 @@ export function CommandLog() {
                 {(parseType || log.language) && (
                   <div className="log-parse-type">
                     {parseType && (
-                      <span 
+                      <span
                         className="parse-type-tag"
                         style={{ background: getParseTypeColor(parseType) }}
                       >
@@ -169,7 +159,7 @@ export function CommandLog() {
                       </span>
                     )}
                     {log.language && (
-                      <span 
+                      <span
                         className="language-tag"
                         style={{ background: getLanguageColor(log.language) }}
                       >
@@ -183,14 +173,17 @@ export function CommandLog() {
                     {log.relationType && (
                       <span className="log-relation-type">关系: {getRelationTypeText(log.relationType)}</span>
                     )}
-                    <span className="log-action-count">动作: {log.actionCount} 个</span>
+                    <span className="log-action-count">{log.actionCount} 个动作</span>
                     {log.actionTypes && log.actionTypes.length > 0 && (
                       <div className="log-action-types">
-                        {log.actionTypes.map((type, index) => (
+                        {log.actionTypes.slice(0, 3).map((type, index) => (
                           <span key={index} className="action-tag">
                             {getActionTypeText(type)}
                           </span>
                         ))}
+                        {log.actionTypes.length > 3 && (
+                          <span className="action-tag">+{log.actionTypes.length - 3}</span>
+                        )}
                       </div>
                     )}
                   </div>

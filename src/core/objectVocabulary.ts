@@ -40,7 +40,7 @@ export const objectVocabulary: ObjectMapping[] = [
     defaultColor: '#E74C3C'
   },
   {
-    keywords: ['树', '树木', '大树', '小树'],
+    keywords: ['树', '树木', '大树', '小树', '松树'],
     type: 'draw_tree',
     defaultColor: '#228B22'
   },
@@ -75,7 +75,7 @@ export const objectVocabulary: ObjectMapping[] = [
     defaultColor: '#2ECC71'
   },
   {
-    keywords: ['鸟', '小鸟', '飞鸟', '鸟儿', '麻雀'],
+    keywords: ['鸟', '小鸟', '飞鸟', '鸟儿', '麻雀', '几只鸟'],
     type: 'draw_bird',
     defaultColor: '#34495E'
   }

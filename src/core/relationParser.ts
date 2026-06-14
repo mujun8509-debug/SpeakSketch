@@ -79,9 +79,6 @@ const RELATION_KEYWORDS: Record<RelationType, string[]> = {
   near: ['近处', '附近', '近处的', '靠近'],
 };
 
-// 动作关键词 - 用于识别"画一个X"模式
-const ACTION_KEYWORDS = ['画一个', '画一只', '画一辆', '画一朵', '画一座', '画一条', '画一艘', '画一片', '画几只'];
-
 // 识别对象
 function findObject(text: string, startPos: number = 0): ObjectInfo | null {
   let bestMatch: ObjectInfo | null = null;
@@ -187,30 +184,36 @@ export function parseRelation(text: string): RelationResult | null {
     return null;
   }
   
-  // 检查是否包含"画"关键词
-  const hasDrawKeyword = ACTION_KEYWORDS.some(kw => text.includes(kw));
-  if (!hasDrawKeyword) {
-    return null;
-  }
-  
   // 提取关系后的对象（主体）
   let subjectObj: ObjectInfo | null = null;
   let referenceObj: ObjectInfo | null = null;
   
-  // 模式匹配 - 支持更多空间关系
+  // 模式匹配 - 支持更多空间关系（不要求必须有"画"字）
   const patterns = [
-    // 基本空间关系
-    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:站在?|在)(.{1,10})(?:旁边|附近|左边|右侧|右面|上方|顶上|下方|底下)/,
-    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:停|飞|站)在(.{1,10})(?:旁边|天空|空中|地面|地上|河上|水上|湖面)/,
-    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在|飞到|跑到)(.{1,10})(?:旁边|天空|地面|河上|水上)/,
+    // 基本空间关系 - 男人站在树旁边（不需要"画"字）
+    /(.{1,8})(?:站在?|在)(.{1,8})(?:旁边|附近|左边|右侧|右面|上方|顶上|下方|底下)/g,
+    /(.{1,8})(?:停|飞|站)在(.{1,8})(?:旁边|天空|空中|地面|地上|河上|水上|湖面)/g,
+    /(.{1,8})(?:在|飞到|跑到)(.{1,8})(?:旁边|天空|地面|河上|水上)/g,
+    // 带"画"字的模式
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:站在?|在)(.{1,10})(?:旁边|附近|左边|右侧|右面|上方|顶上|下方|底下)/g,
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:停|飞|站)在(.{1,10})(?:旁边|天空|空中|地面|地上|河上|水上|湖面)/g,
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在|飞到|跑到)(.{1,10})(?:旁边|天空|地面|河上|水上)/g,
     // 方位词模式
-    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在|飞向)(东边|东方|西面|西边|南方|北边|东北|东南|西北|西南)/,
-    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:的)(东边|东方|西面|西边|南方|北边|东北|东南|西北|西南)(?:有|是)/,
+    /(.{1,8})(?:在|飞向)(东边|东方|西面|西边|南方|北边|东北|东南|西北|西南)/g,
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在|飞向)(东边|东方|西面|西边|南方|北边|东北|东南|西北|西南)/g,
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:的)(东边|东方|西面|西边|南方|北边|东北|东南|西北|西南)(?:有|是)/g,
+    // 天空模式 - 鸟在天空中
+    /(.{1,8})(?:在天空中|在空中|在天上)/g,
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在天空中|在空中|在天上)/g,
+    // 河上模式 - 船在河上
+    /(.{1,8})(?:在河上|在水上|在湖面)/g,
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在河上|在水上|在湖面)/g,
     // 远近关系模式
-    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在)(.{1,10})(?:远处|远方|近处|附近)/,
-    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在)(远处|远方|近处)/,
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在)(.{1,10})(?:远处|远方|近处|附近)/g,
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:在)(远处|远方|近处)/g,
     // 简化模式
-    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:的)(旁边|附近|左边|右边)/,
+    /(.{1,8})(?:的)(旁边|附近|左边|右边)/g,
+    /(?:画(?:一(?:个|只|辆|朵|座|条|艘|片)|几只))(.{1,10})(?:的)(旁边|附近|左边|右边)/g,
   ];
   
   for (const pattern of patterns) {
@@ -227,12 +230,19 @@ export function parseRelation(text: string): RelationResult | null {
         }
       }
       
-      // 查找参照对象
-      for (const mapping of objectVocabulary) {
-        if (mapping.keywords.some(kw => referenceName.includes(kw))) {
-          referenceObj = { mapping, keyword: referenceName, position: 0 };
-          break;
+      // 查找参照对象（对于天空、河上等场景，referenceName 可能是场景关键词，不是对象）
+      const isSceneRelation = ['天空', '空中', '天上', '河上', '水上', '湖面', '地面', '地上'].includes(referenceName);
+      
+      if (!isSceneRelation) {
+        for (const mapping of objectVocabulary) {
+          if (mapping.keywords.some(kw => referenceName.includes(kw))) {
+            referenceObj = { mapping, keyword: referenceName, position: 0 };
+            break;
+          }
         }
+      } else {
+        // 场景关系，不需要绘制参照对象
+        referenceObj = null;
       }
       
       // 如果没找到，尝试直接匹配关键词
@@ -240,20 +250,19 @@ export function parseRelation(text: string): RelationResult | null {
         const found = findObject(subjectName);
         if (found) subjectObj = found;
       }
-      if (!referenceObj) {
+      if (!referenceObj && !isSceneRelation) {
         const found = findObject(referenceName);
         if (found) referenceObj = found;
       }
       
-      if (subjectObj && referenceObj) {
+      if (subjectObj) {
         break;
       }
     }
   }
   
-  // 如果模式匹配失败，尝试简化匹配
-  if (!subjectObj || !referenceObj) {
-    // 找到所有对象
+  // 如果模式匹配失败，尝试简化匹配（找到所有对象）
+  if (!subjectObj) {
     const allObjects: ObjectInfo[] = [];
     let pos = 0;
     while (pos < text.length) {
@@ -268,9 +277,9 @@ export function parseRelation(text: string): RelationResult | null {
       subjectObj = allObjects[0];
       referenceObj = allObjects[allObjects.length - 1];
     } else if (allObjects.length === 1) {
-      // 只有一个对象，参照物是主体自己
+      // 只有一个对象，可能是场景关系（如"鸟在天空中"）
       subjectObj = allObjects[0];
-      referenceObj = allObjects[0];
+      referenceObj = null; // 设置为 null，后面处理场景关系
     }
   }
   
@@ -281,9 +290,26 @@ export function parseRelation(text: string): RelationResult | null {
   // 确定参照位置
   let refX = 480;
   let refY = 340;
+  let shouldCreateReference = true;
   
-  // 如果有参照对象，先画参照对象并获取其位置
-  if (referenceObj && referenceObj !== subjectObj) {
+  // 处理场景关系（天空、河上等）
+  if (!referenceObj || ['天空', '空中', '天上'].includes(relation)) {
+    // 天空关系：主体放在上方
+    refX = 480;
+    refY = 150;
+    shouldCreateReference = false;
+  } else if (['河上', '水上', '湖面'].includes(relation)) {
+    // 河上关系：先画河，再画船
+    refX = 480;
+    refY = 450;
+    shouldCreateReference = true;
+    // 检查是否需要创建河
+    const riverMapping = objectVocabulary.find(m => m.type === 'draw_river');
+    if (riverMapping && !referenceObj.mapping.type.includes('river')) {
+      referenceObj = { mapping: riverMapping, keyword: '河', position: 0 };
+    }
+  } else if (referenceObj && referenceObj !== subjectObj) {
+    // 有参照对象且不是同一个，计算参照位置
     const refPos = calculatePosition(relation, refX, refY, false);
     refX = refPos.x;
     refY = refPos.y;
@@ -295,8 +321,8 @@ export function parseRelation(text: string): RelationResult | null {
   // 生成 actions
   const actions: DrawAction[] = [];
   
-  // 先画参照物（如果有）
-  if (referenceObj && referenceObj !== subjectObj) {
+  // 先画参照物（如果需要）
+  if (shouldCreateReference && referenceObj && referenceObj !== subjectObj) {
     const refAction: DrawAction = {
       type: referenceObj.mapping.type as DrawAction['type'],
       payload: {
