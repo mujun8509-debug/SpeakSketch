@@ -59,6 +59,7 @@ VITE_IMAGE_API_URL=http://localhost:3001/api/style-image
 - OpenAI API Key 只允许放在后端 `.env` 中
 - 不要提交真实 `.env`
 - 未配置 `OPENAI_API_KEY` 时 `/api/style-image` 使用 Mock 模式
+- 本地测试已验证 Mock 与错误兜底路径；真实 OpenAI 生成需在 `server/.env` 配置有效 Key 后由使用者自行测试
 
 ## 最终提交说明
 
@@ -157,7 +158,7 @@ src/
 | 编辑操作 | 基础功能经手动测试通过 | 移动、改色、缩放、删除 |
 | 历史管理 | 基础功能经手动测试通过 | 撤销、重做、重放 |
 | 语音识别 | 云端能力为可选接口预留 | 默认使用 Web Speech API；配置后端后可使用云端 ASR |
-| AI 风格化 | 云端能力为可选接口预留 | 配置 `VITE_IMAGE_API_URL` 时调用后端代理；未配置时使用 Mock 模式 |
+| AI 风格化 | 云端能力为可选接口预留 | 结构化绘图主流程不依赖该能力；配置 `VITE_IMAGE_API_URL` 后调用后端代理，后端未配置 `OPENAI_API_KEY` 时使用 Mock 模式 |
 
 ## 📝 开发日志
 
@@ -203,7 +204,7 @@ src/
 
 ## 🎨 AI 风格化成品
 
-本项目提供可选 AI 图像风格化后端代理能力，可在 `server/.env` 配置 `OPENAI_API_KEY` 后调用 OpenAI 图像 API，将语音绘制的结构化草图转化为风格化成品图。结构化绘图主流程不依赖该能力；未配置后端 Key 时，系统使用 Mock 模式。
+本项目提供可选 AI 图像风格化后端代理能力，可在 `server/.env` 配置 `OPENAI_API_KEY` 后调用 OpenAI 图像 API，将语音绘制的结构化草图转化为风格化成品图。结构化绘图主流程不依赖该能力；未配置后端 Key 时，系统使用 Mock 模式。本地测试已验证 Mock 与错误兜底路径，真实生成需使用者自行配置有效 Key 后测试，且可能产生 API 费用。
 
 ### 功能定位
 
@@ -244,31 +245,47 @@ Content-Type: application/json
   "prompt": "..."
 }
 
-返回:
+未配置 `OPENAI_API_KEY` 时返回:
 {
-  "imageUrl": "https://..."
+  "imageDataUrl": "data:image/png;base64,...",
+  "isMock": true,
+  "message": "OpenAI image backend provider is not configured. Mock mode returned the original image."
 }
-或:
+
+配置有效 `OPENAI_API_KEY` 且生成成功时返回:
 {
-  "imageDataUrl": "data:image/png;base64,..."
+  "imageDataUrl": "data:image/png;base64,...",
+  "isMock": false,
+  "provider": "openai"
+}
+
+生成失败时返回受控错误:
+{
+  "error": "OpenAI image generation failed",
+  "isMock": false
 }
 ```
 
 ### 配置方法
 
-在项目根目录创建 `.env` 文件：
+前端 `.env` 只配置后端代理地址：
 
 ```
 VITE_IMAGE_API_URL=http://localhost:3001/api/style-image
 ```
 
+真实 OpenAI 图像生成只在后端启用，需要在 `server/.env` 中配置：
+
+```env
+OPENAI_API_KEY=你的有效后端密钥
+OPENAI_IMAGE_MODEL=gpt-image-1
+```
+
+不要把 `OPENAI_API_KEY` 写入前端 `.env`，也不要提交真实 `.env`。
+
 ### Mock 模式
 
-未配置 `VITE_IMAGE_API_URL` 时：
-- 系统使用 Mock 模式
-- 直接返回原始画布图像
-- UI 标注"Mock 模式：未调用真实图像模型"
-- 不影响项目正常运行
+未配置 `VITE_IMAGE_API_URL` 时，前端使用本地 Mock；配置了后端 URL 但 `server/.env` 未设置有效 `OPENAI_API_KEY` 时，`/api/style-image` 返回 Mock 结果。若真实 provider 调用失败，后端返回受控错误，前端结构化绘图主流程和原始 Fabric 画布不受影响。
 
 ### 密钥安全
 

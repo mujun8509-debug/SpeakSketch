@@ -5,7 +5,9 @@ This directory contains the backend proxy for SpeakSketch.
 The current implementation keeps ASR mock-only and supports an optional OpenAI image provider:
 - `/api/asr` accepts audio upload fields but does not call Xunfei ASR yet.
 - `/api/style-image` returns Mock output when `OPENAI_API_KEY` is not configured.
-- `/api/style-image` calls OpenAI Image API when `OPENAI_API_KEY` is configured in `server/.env`.
+- `/api/style-image` calls OpenAI Image API when a valid `OPENAI_API_KEY` is configured in `server/.env`.
+
+OpenAI image generation is an optional backend enhancement. It does not affect the structured drawing flow. Local verification has covered Mock mode and controlled error handling; real generation must be tested by the user after configuring a valid backend key.
 
 ## Install
 
@@ -101,7 +103,7 @@ When `OPENAI_API_KEY` is not configured, the endpoint returns the original `imag
 }
 ```
 
-When `OPENAI_API_KEY` is configured in `server/.env`, the endpoint calls OpenAI Image API and returns:
+When a valid `OPENAI_API_KEY` is configured in `server/.env`, the endpoint calls OpenAI Image API and returns:
 
 ```json
 {
@@ -137,3 +139,4 @@ VITE_IMAGE_API_URL=http://localhost:3001/api/style-image
 - The frontend must not store or send provider API keys.
 - The frontend should only call `VITE_IMAGE_API_URL=http://localhost:3001/api/style-image`.
 - Real OpenAI image generation may incur API costs.
+- Do not claim real OpenAI generation has been fully verified unless a valid key was configured and the request completed successfully.
