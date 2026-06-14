@@ -2,7 +2,7 @@ import * as fabric from 'fabric';
 import { DrawCommand, ContextTarget } from './commandTypes';
 import { createCircle, createRect, createText, createLine, createTriangle, createSun, createCloud, createTree, createHouse, createPerson, createCat, createDog, createCar, createFlower, createMountain, createRiver, createBoat, createGrass, createBird } from './shapeFactory';
 import { historyManager, getObjectState } from './historyManager';
-import { getNextPosition } from './positionResolver';
+import { CanvasPositionName, getNextPosition, resolveCanvasPosition } from './positionResolver';
 
 const DEFAULT_COLOR = '#000000';
 const MOVEMENT_STEP = 50;
@@ -87,8 +87,50 @@ export class CommandExecutor {
     this.lastCreatedObject = obj;
   }
 
+  private resolveActionPosition(action: { type: string; payload?: Record<string, unknown> }): { type: string; payload?: Record<string, unknown> } {
+    if (!this.canvas) return action;
+
+    const payload = action.payload || {};
+    if (typeof payload.x === 'number' && typeof payload.y === 'number') {
+      return action;
+    }
+
+    const actionX = (action as { x?: unknown }).x;
+    const actionY = (action as { y?: unknown }).y;
+    if (typeof actionX === 'number' && typeof actionY === 'number') {
+      return {
+        ...action,
+        payload: {
+          ...payload,
+          x: actionX,
+          y: actionY,
+        },
+      };
+    }
+
+    if (typeof payload.position === 'string') {
+      const pos = resolveCanvasPosition(
+        payload.position as CanvasPositionName,
+        this.canvas.width || 800,
+        this.canvas.height || 600
+      );
+
+      return {
+        ...action,
+        payload: {
+          ...payload,
+          x: pos.x,
+          y: pos.y,
+        },
+      };
+    }
+
+    return action;
+  }
+
   private executeAction(action: { type: string; payload?: Record<string, unknown> }): boolean {
     if (!this.canvas) return false;
+    action = this.resolveActionPosition(action);
 
     switch (action.type) {
       case 'draw_circle': {
