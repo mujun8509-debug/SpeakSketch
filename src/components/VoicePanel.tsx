@@ -17,10 +17,10 @@ export function VoicePanel() {
   const [error, setError] = useState('');
   const [asrMode, setAsrMode] = useState<'browser' | 'cloud'>('browser');
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
   // Use ref to avoid React state async issue
   const latestTranscriptRef = useRef<string>('');
-  
+
   const { speak } = useSpeechSynthesis();
   const audioRecorder = useAudioRecorder();
 
@@ -84,34 +84,34 @@ export function VoicePanel() {
       // 停止录音并识别
       setIsProcessing(true);
       setError('');
-      
+
       try {
         const audioBlob = await audioRecorder.stopRecording();
-        
+
         if (!audioBlob) {
           setError('录音失败，请重试');
           speak('录音失败，请重试');
           setIsProcessing(false);
           return;
         }
-        
+
         // 获取当前 ASR 状态
         const asrStatus = getASRStatus();
-        
+
         // 调用云端识别
         const result = await transcribeAudio({
           audioBlob,
           languageMode: asrStatus.currentLanguageMode,
           provider: asrStatus.currentProvider,
         });
-        
+
         if (result.error) {
           setError(result.error);
           speak('语音识别失败，请重试或使用调试输入');
           setIsProcessing(false);
           return;
         }
-        
+
         if (result.text.trim()) {
           // 记录识别结果
           recordASRResult(result);
@@ -121,7 +121,7 @@ export function VoicePanel() {
           setError('未识别到语音内容');
           speak('未识别到语音内容，请重试');
         }
-        
+
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : '识别过程出错';
         setError(`语音识别失败: ${errorMsg}`);
@@ -129,7 +129,7 @@ export function VoicePanel() {
       } finally {
         setIsProcessing(false);
       }
-      
+
     } else {
       // 开始录音
       audioRecorder.startRecording();
@@ -138,12 +138,12 @@ export function VoicePanel() {
 
   const executeCommand = (text: string) => {
     const startTime = Date.now();
-    
+
     const logId = addLog({ commandId: '', rawText: text, status: 'executing' });
-    
+
     try {
       const { command, language } = parseBilingualCommand(text);
-      
+
       if (!command || command.actions.length === 0) {
         const execTime = Date.now() - startTime;
         updateLog(logId, {
@@ -157,15 +157,15 @@ export function VoicePanel() {
         speak('我没有理解这条指令，请换一种说法');
         return;
       }
-      
+
       addCommand(command);
-      
+
       const actionTypes = command.actions.map(a => a.type);
-      
+
       const success = commandExecutor.execute(command);
-      
+
       const execTime = Date.now() - startTime;
-      
+
       if (success) {
         updateLog(logId, {
           commandId: command.id,
@@ -222,7 +222,7 @@ export function VoicePanel() {
   const handleModeSwitch = (mode: 'browser' | 'cloud') => {
     setAsrMode(mode);
     setError('');
-    
+
     // 如果正在录音，取消当前录音
     if (audioRecorder.isRecording) {
       audioRecorder.cancelRecording();
@@ -233,9 +233,10 @@ export function VoicePanel() {
 
   return (
     <div className="voice-panel panel-card">
-      <div className="section">
-        <h3 className="section-title">语音控制</h3>
-        
+      {/* 语音控制区域 */}
+      <div className="voice-section">
+        <h3 className="voice-section-title">语音控制</h3>
+
         {/* 识别模式切换 */}
         <div className="asr-mode-switch">
           <button
@@ -250,12 +251,11 @@ export function VoicePanel() {
             onClick={() => handleModeSwitch('cloud')}
             disabled={!asrStatus.isConfigured || isListening || audioRecorder.isRecording || isProcessing}
           >
-            云端识别
-            {!asrStatus.isConfigured && <span className="mode-warning">（未配置）</span>}
+            云端识别 {!asrStatus.isConfigured && <span className="mode-warning">未配置</span>}
           </button>
         </div>
-        
-        {/* 浏览器识别按钮 */}
+
+        {/* 主麦克风按钮 */}
         {asrMode === 'browser' && (
           <button
             className={`mic-button ${isListening ? 'active' : ''}`}
@@ -271,8 +271,7 @@ export function VoicePanel() {
             <span>{isListening ? '正在听...' : '开始语音'}</span>
           </button>
         )}
-        
-        {/* 云端识别按钮 */}
+
         {asrMode === 'cloud' && (
           <button
             className={`mic-button ${audioRecorder.isRecording ? 'recording' : ''} ${isProcessing ? 'processing' : ''}`}
@@ -286,13 +285,13 @@ export function VoicePanel() {
               <line x1="8" y1="23" x2="16" y2="23" />
             </svg>
             <span>
-              {isProcessing ? '识别中...' : 
-               audioRecorder.isRecording ? `录音中 (${audioRecorder.duration}s)` : 
+              {isProcessing ? '识别中...' :
+               audioRecorder.isRecording ? `录音中 (${audioRecorder.duration}s)` :
                '开始录音'}
             </span>
           </button>
         )}
-        
+
         {/* 错误提示 */}
         {!isSupported && asrMode === 'browser' && (
           <p className="warning">浏览器不支持语音识别</p>
@@ -303,21 +302,18 @@ export function VoicePanel() {
         {error && (
           <p className="error">{error}</p>
         )}
-      </div>
 
-      {/* 当前识别内容 */}
-      {transcript && asrMode === 'browser' && (
-        <div className="section">
-          <h3 className="section-title">当前识别</h3>
+        {/* 当前识别内容 */}
+        {transcript && asrMode === 'browser' && (
           <div className="transcript-box">
             <p>{transcript}</p>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* 调试输入 - 始终保留 */}
-      <div className="section">
-        <h3 className="section-title">调试输入</h3>
+      {/* 调试输入 */}
+      <div className="debug-section">
+        <h3 className="voice-section-title">调试输入</h3>
         <div className="debug-input-group">
           <input
             type="text"
@@ -325,11 +321,11 @@ export function VoicePanel() {
             value={debugInput}
             onChange={(e) => setDebugInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="输入绘图指令..."
+            placeholder="试试：在右下角画一只猫"
             disabled={isListening || audioRecorder.isRecording || isProcessing}
           />
-          <button 
-            className="execute-button" 
+          <button
+            className="execute-button"
             onClick={handleExecute}
             disabled={isListening || audioRecorder.isRecording || isProcessing}
           >
