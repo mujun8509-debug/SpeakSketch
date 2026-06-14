@@ -13,6 +13,9 @@ export interface ImageGenerationParams {
   style: string;
   mood: string;
   prompt: string;
+  semanticPrompt?: string;
+  sceneDescription?: string;
+  actionSummary?: unknown[];
 }
 
 export interface ImageGenerationResult {
@@ -49,7 +52,10 @@ export function getImageGenerationConfig(): ImageGenerationConfig {
  *   "imageDataUrl": "data:image/png;base64,...",
  *   "style": "动漫化",
  *   "mood": "清新校园",
- *   "prompt": "..."
+ *   "prompt": "...",
+ *   "semanticPrompt": "...",
+ *   "sceneDescription": "...",
+ *   "actionSummary": [...]
  * }
  * 
  * 返回：
@@ -64,7 +70,7 @@ export function getImageGenerationConfig(): ImageGenerationConfig {
 export async function generateStyledImage(
   params: ImageGenerationParams
 ): Promise<ImageGenerationResult> {
-  const { imageDataUrl, style, mood, prompt } = params;
+  const { imageDataUrl, style, mood, prompt, semanticPrompt, sceneDescription, actionSummary } = params;
   const config = getImageGenerationConfig();
   
   // Mock 模式：未配置 API URL
@@ -87,6 +93,9 @@ export async function generateStyledImage(
         style,
         mood,
         prompt,
+        semanticPrompt,
+        sceneDescription,
+        actionSummary,
       }),
     });
     

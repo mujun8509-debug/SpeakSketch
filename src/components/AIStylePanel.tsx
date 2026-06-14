@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { commandExecutor } from '../core/commandExecutor';
 import { generateStyledImage, getImageGenerationConfig } from '../core/imageGenerationService';
 import { buildStylePrompt, getAvailableStyles, getAvailableMoods } from '../core/stylePromptBuilder';
+import {
+  buildAISemanticContext,
+  exportCanvasForAIStyle,
+} from '../core/aiStyleSemanticExport';
+import { useAppStore } from '../store/useAppStore';
 
 export interface AIResult {
   originalImageUrl: string;
@@ -18,6 +23,7 @@ interface AIStylePanelProps {
 }
 
 export function AIStylePanel({ onGenerationComplete }: AIStylePanelProps) {
+  const { commandHistory, logs } = useAppStore();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState<string>('');
   const [selectedMood, setSelectedMood] = useState<string>('');
@@ -63,17 +69,26 @@ export function AIStylePanel({ onGenerationComplete }: AIStylePanelProps) {
         return;
       }
 
-      // 导出当前画布为 Data URL
-      const imageDataUrl = canvas.toDataURL({
+      const originalImageDataUrl = canvas.toDataURL({
         multiplier: 1,
         format: 'png',
         quality: 1,
       });
 
+      const semanticContext = buildAISemanticContext(
+        commandHistory,
+        logs,
+        canvas.getWidth(),
+        canvas.getHeight()
+      );
+
+      const imageDataUrl = await exportCanvasForAIStyle(canvas, semanticContext);
+
       // 生成提示词
       const prompt = buildStylePrompt({
         style: selectedStyle,
         mood: selectedMood,
+        sceneDescription: semanticContext.sceneDescription,
       });
 
       // 调用图像生成服务
@@ -82,12 +97,15 @@ export function AIStylePanel({ onGenerationComplete }: AIStylePanelProps) {
         style: selectedStyle,
         mood: selectedMood,
         prompt,
+        semanticPrompt: semanticContext.semanticPrompt,
+        sceneDescription: semanticContext.sceneDescription,
+        actionSummary: semanticContext.actionSummary,
       });
 
       if (result.error) {
         setError(result.error);
         onGenerationComplete?.({
-          originalImageUrl: imageDataUrl,
+          originalImageUrl: originalImageDataUrl,
           isMock: false,
           style: selectedStyle,
           mood: selectedMood,
@@ -95,7 +113,7 @@ export function AIStylePanel({ onGenerationComplete }: AIStylePanelProps) {
         });
       } else {
         onGenerationComplete?.({
-          originalImageUrl: imageDataUrl,
+          originalImageUrl: originalImageDataUrl,
           styledImageUrl: result.imageUrl,
           styledImageDataUrl: result.imageDataUrl,
           isMock: result.isMock,
