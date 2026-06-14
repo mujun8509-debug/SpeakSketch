@@ -31,7 +31,15 @@ app.post('/api/asr', upload.single('audio'), (req, res) => {
 });
 
 app.post('/api/style-image', async (req, res) => {
-  const { imageDataUrl, style, mood, prompt } = req.body || {};
+  const {
+    imageDataUrl,
+    style,
+    mood,
+    prompt,
+    semanticPrompt,
+    sceneDescription,
+    actionSummary,
+  } = req.body || {};
 
   try {
     const result = await generateStyledImage({
@@ -39,6 +47,9 @@ app.post('/api/style-image', async (req, res) => {
       style,
       mood,
       prompt,
+      semanticPrompt,
+      sceneDescription,
+      actionSummary,
     });
 
     return res.json(result);

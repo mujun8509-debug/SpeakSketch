@@ -88,9 +88,20 @@ Accepts JSON:
   "imageDataUrl": "data:image/png;base64,...",
   "style": "动漫化",
   "mood": "清新校园",
-  "prompt": "..."
+  "prompt": "...",
+  "semanticPrompt": "这是一张由结构化绘图工具生成的简笔草图...",
+  "sceneDescription": "海边日落或海面场景...",
+  "actionSummary": [
+    {
+      "type": "draw_boat",
+      "label": "船",
+      "position": "画面下方中间"
+    }
+  ]
 }
 ```
+
+`semanticPrompt`, `sceneDescription`, and `actionSummary` are optional. When provided, the backend merges them into the Seedream prompt so the image-to-image provider can better interpret abstract sketch symbols such as birds, boats, sea horizon, grass, trees, people, and cats. Older clients that only send `imageDataUrl`, `style`, `mood`, and `prompt` remain supported.
 
 When `SEEDREAM_API_KEY` is not configured, the endpoint returns the original `imageDataUrl`:
 

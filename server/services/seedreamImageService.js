@@ -13,13 +13,43 @@ function parseDataUrl(imageDataUrl) {
   };
 }
 
-function buildSeedreamPrompt({ style, mood, prompt }) {
+function formatActionSummary(actionSummary) {
+  if (!Array.isArray(actionSummary) || actionSummary.length === 0) {
+    return '';
+  }
+
+  return actionSummary
+    .slice(0, 24)
+    .map((action) => {
+      const label = action.label || action.type || '未知元素';
+      const position = action.position ? `，位置：${action.position}` : '';
+      const count = action.count ? `，数量：${action.count}` : '';
+      return `${label}${position}${count}`;
+    })
+    .join('；');
+}
+
+function buildSeedreamPrompt({
+  style,
+  mood,
+  prompt,
+  semanticPrompt,
+  sceneDescription,
+  actionSummary,
+}) {
+  const formattedActionSummary = formatActionSummary(actionSummary);
+
   return [
     '请将输入图片转化为指定艺术风格。',
-    '保留原始画面中的主要物体、位置关系和构图。',
-    '不要生成与原图无关的新画面。',
-    '不要删除原有主体。',
+    '这是一张由结构化绘图工具生成的简笔草图，部分图形较抽象，请结合语义说明理解画面。',
+    '必须使用输入图片作为图生图参考，不要生成与原图无关的新画面。',
+    '保留原始画面中的主要物体、空间关系、位置和构图。',
+    '将抽象符号解释为对应真实物体，例如鸟、云、太阳、船、海平面、树、人物、猫、汽车等。',
+    '不要删除原有主体，不要忽略小物体。',
     '增强画面质感、色彩、光影和细节。',
+    semanticPrompt ? `画面语义说明：${semanticPrompt}` : '',
+    sceneDescription ? `场景描述：${sceneDescription}` : '',
+    formattedActionSummary ? `结构化动作摘要：${formattedActionSummary}` : '',
     style ? `目标风格：${style}` : '',
     mood ? `画面氛围：${mood}` : '',
     prompt ? `用户补充要求：${prompt}` : '',

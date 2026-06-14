@@ -213,6 +213,8 @@ AI 风格化是后处理增强功能，不替代结构化绘图：
 - 用户先完成结构化绘图，再主动触发 AI 风格化
 - 原始 Fabric 画布不被覆盖，可继续编辑
 - 保持撤销、重做、重放等基础流程不被替代
+- 生成请求会附带 `semanticPrompt`、`sceneDescription` 和 `actionSummary`，帮助图生图 provider 理解海边、公园、猫等抽象简笔符号
+- 前端只在 AI 风格化导出时生成带语义背景的临时图片，不修改原始画布
 
 ### 风格选择
 
@@ -242,7 +244,16 @@ Content-Type: application/json
   "imageDataUrl": "data:image/png;base64,...",
   "style": "动漫化",
   "mood": "清新校园",
-  "prompt": "..."
+  "prompt": "...",
+  "semanticPrompt": "这是一张由结构化绘图工具生成的简笔草图...",
+  "sceneDescription": "海边日落或海面场景...",
+  "actionSummary": [
+    {
+      "type": "draw_boat",
+      "label": "船",
+      "position": "画面下方中间"
+    }
+  ]
 }
 
 未配置 `SEEDREAM_API_KEY` 时返回:

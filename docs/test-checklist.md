@@ -18,6 +18,10 @@
 - [ ] 未配置 `SEEDREAM_API_KEY` 时 `/api/style-image` 返回 Mock 结果
 - [ ] 非法 data URL 或 provider 失败时返回受控错误
 - [ ] 前端不保存 `SEEDREAM_API_KEY`
+- [ ] AI 风格化请求包含 `semanticPrompt` 或 `sceneDescription`
+- [ ] 海边场景语义说明包含太阳、云、鸟、船、海平面或海水区域
+- [ ] 公园场景语义说明包含草地、树、人物、花朵和小鸟
+- [ ] AI 专用导出图不会覆盖原始 Fabric 画布
 - [ ] 配置有效 `SEEDREAM_API_KEY` 后真实图生图风格化可用（仅在使用者自行配置 Key 后测试；未测试时不要勾选）
 
 ### 核心功能
