@@ -25,6 +25,7 @@ export interface DrawAction {
   payload?: {
     x?: number;
     y?: number;
+    position?: import('./positionResolver').CanvasPositionName;
     width?: number;
     height?: number;
     radius?: number;
