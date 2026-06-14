@@ -50,7 +50,7 @@
 2. 展示 AI 风格化区域。
 
 **讲解**：
-> "未配置真实后端 provider 时，浏览器识别、调试输入和 Mock 模式仍可使用。前端不保存任何讯飞或 OpenAI API Key。"
+> "未配置真实后端 provider 时，浏览器识别、调试输入和 Mock 模式仍可使用。前端不保存任何讯飞或 Seedream API Key。"
 
 ### 2:40 - 3:00 后端 health 接口
 
