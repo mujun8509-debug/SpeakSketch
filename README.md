@@ -2,6 +2,10 @@
 
 SpeakSketch 是一个纯语音控制的结构化绘图工具，用户通过自然语言指令在画布上绘制图形，无需手动操作。
 
+## 🎬 演示视频
+
+<iframe width="800" height="450" src="https://player.bilibili.com/player.html?bvid=BV1LgJK6bE8E&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
+
 ## 🎯 项目特点
 
 - **语音驱动**: 完全通过语音指令控制绘图，支持中文和英文自然语言
