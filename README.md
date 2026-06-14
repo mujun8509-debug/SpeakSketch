@@ -37,7 +37,7 @@ npm run build
 
 ## 🧩 后端代理说明
 
-仓库新增 `server/` 目录作为最小后端代理骨架，用于后续安全接入讯飞 ASR 和 GPT 图像生成能力。当前后端只提供 mock 接口，不连接真实讯飞 WebSocket，也不调用真实 OpenAI 图像生成 API。
+仓库新增 `server/` 目录作为最小后端代理骨架，用于安全接入讯飞 ASR 和 OpenAI 图像生成能力。当前后端不连接真实讯飞 WebSocket；OpenAI 图像生成是可选后端增强，结构化绘图主流程不依赖该能力。未配置后端 Key 时，系统使用 Mock 模式。
 
 后端本地启动：
 
@@ -58,7 +58,7 @@ VITE_IMAGE_API_URL=http://localhost:3001/api/style-image
 - 讯飞 APPID、APIKey、APISecret 只允许放在后端 `.env` 中
 - OpenAI API Key 只允许放在后端 `.env` 中
 - 不要提交真实 `.env`
-- 当前真实 provider 接入将在后续独立 PR 中完成
+- 未配置 `OPENAI_API_KEY` 时 `/api/style-image` 使用 Mock 模式
 
 ## 最终提交说明
 
@@ -203,7 +203,7 @@ src/
 
 ## 🎨 AI 风格化成品
 
-本项目预留 AI 图像风格化后端代理能力，可在后续接入真实 provider 后将语音绘制的结构化草图转化为风格化成品图。当前 `server/` 骨架先返回 Mock 结果，不调用真实 OpenAI 图像生成 API。
+本项目提供可选 AI 图像风格化后端代理能力，可在 `server/.env` 配置 `OPENAI_API_KEY` 后调用 OpenAI 图像 API，将语音绘制的结构化草图转化为风格化成品图。结构化绘图主流程不依赖该能力；未配置后端 Key 时，系统使用 Mock 模式。
 
 ### 功能定位
 
@@ -275,7 +275,8 @@ VITE_IMAGE_API_URL=http://localhost:3001/api/style-image
 - 前端不保存 OpenAI API Key
 - 前端不直接调用 OpenAI API
 - 前端只通过 `VITE_IMAGE_API_URL` 调用后端接口
-- 当前后端代理骨架先返回 Mock 结果，真实 OpenAI 图像生成 / 编辑 API 将在后续 PR 接入
+- 后端从 `server/.env` 读取 `OPENAI_API_KEY`
+- 未配置 `OPENAI_API_KEY` 时，后端返回 Mock 结果
 
 ## 🎤 讯飞 ASR 接入说明
 

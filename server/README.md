@@ -1,11 +1,11 @@
 # SpeakSketch Backend Proxy
 
-This directory contains the minimal backend proxy scaffold for SpeakSketch.
+This directory contains the backend proxy for SpeakSketch.
 
-The current implementation is intentionally mock-only:
+The current implementation keeps ASR mock-only and supports an optional OpenAI image provider:
 - `/api/asr` accepts audio upload fields but does not call Xunfei ASR yet.
-- `/api/style-image` accepts image generation fields but does not call OpenAI yet.
-- Real provider integrations should be added in later pull requests.
+- `/api/style-image` returns Mock output when `OPENAI_API_KEY` is not configured.
+- `/api/style-image` calls OpenAI Image API when `OPENAI_API_KEY` is configured in `server/.env`.
 
 ## Install
 
@@ -23,6 +23,21 @@ cp .env.example .env
 ```
 
 Do not commit a real `.env` file. Provider credentials must stay on the backend.
+
+Example:
+
+```env
+PORT=3001
+
+# OpenAI image generation key, backend only
+OPENAI_API_KEY=
+OPENAI_IMAGE_MODEL=gpt-image-1
+
+# Xunfei ASR credentials, backend only, used in future PR
+XUNFEI_APP_ID=
+XUNFEI_API_KEY=
+XUNFEI_API_SECRET=
+```
 
 ## Start
 
@@ -76,13 +91,32 @@ Accepts JSON:
 }
 ```
 
-Current mock response returns the original `imageDataUrl`:
+When `OPENAI_API_KEY` is not configured, the endpoint returns the original `imageDataUrl`:
 
 ```json
 {
   "imageDataUrl": "data:image/png;base64,...",
   "isMock": true,
-  "message": "GPT image backend proxy is ready but real provider is not configured."
+  "message": "OpenAI image backend provider is not configured. Mock mode returned the original image."
+}
+```
+
+When `OPENAI_API_KEY` is configured in `server/.env`, the endpoint calls OpenAI Image API and returns:
+
+```json
+{
+  "imageDataUrl": "data:image/png;base64,...",
+  "isMock": false,
+  "provider": "openai"
+}
+```
+
+If generation fails, the endpoint returns a controlled error response:
+
+```json
+{
+  "error": "OpenAI image generation failed",
+  "isMock": false
 }
 ```
 
@@ -101,3 +135,5 @@ VITE_IMAGE_API_URL=http://localhost:3001/api/style-image
 - Keep OpenAI API keys only in `server/.env`.
 - Never commit real `.env` files.
 - The frontend must not store or send provider API keys.
+- The frontend should only call `VITE_IMAGE_API_URL=http://localhost:3001/api/style-image`.
+- Real OpenAI image generation may incur API costs.
