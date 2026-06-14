@@ -2,6 +2,12 @@
 
 SpeakSketch 是一个纯语音控制的结构化绘图工具，用户通过自然语言指令在画布上绘制图形，无需手动操作。
 
+## 🎬 演示视频
+
+[![SpeakSketch 演示视频](https://i0.hdslb.com/bfs/archive/9254dc7407736b0b17754b08989e79757d4a9c79.jpg)](https://www.bilibili.com/video/BV1LgJK6bE8E/?share_source=copy_web&vd_source=c24085dcd917f213cfec47a40ff62760)
+
+点击图片观看演示视频
+
 ## 🎯 项目特点
 
 - **语音驱动**: 完全通过语音指令控制绘图，支持中文和英文自然语言
@@ -213,8 +219,6 @@ AI 风格化是后处理增强功能，不替代结构化绘图：
 - 用户先完成结构化绘图，再主动触发 AI 风格化
 - 原始 Fabric 画布不被覆盖，可继续编辑
 - 保持撤销、重做、重放等基础流程不被替代
-- 生成请求会附带 `semanticPrompt`、`sceneDescription` 和 `actionSummary`，帮助图生图 provider 理解海边、公园、猫等抽象简笔符号
-- 前端只在 AI 风格化导出时生成带语义背景的临时图片，不修改原始画布
 
 ### 风格选择
 
@@ -244,16 +248,7 @@ Content-Type: application/json
   "imageDataUrl": "data:image/png;base64,...",
   "style": "动漫化",
   "mood": "清新校园",
-  "prompt": "...",
-  "semanticPrompt": "这是一张由结构化绘图工具生成的简笔草图...",
-  "sceneDescription": "海边日落或海面场景...",
-  "actionSummary": [
-    {
-      "type": "draw_boat",
-      "label": "船",
-      "position": "画面下方中间"
-    }
-  ]
+  "prompt": "..."
 }
 
 未配置 `SEEDREAM_API_KEY` 时返回:
@@ -438,4 +433,4 @@ VITE_ASR_API_URL=http://localhost:3001/api/asr
 ---
 
 **开发时间**: 2026年6月12日-14日
-**最后更新**: 2026-06-13
+**最后更新**: 2026-06-15
