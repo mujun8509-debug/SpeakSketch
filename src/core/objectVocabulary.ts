@@ -8,7 +8,9 @@ export type ObjectType =
   | 'draw_river'
   | 'draw_boat'
   | 'draw_grass'
-  | 'draw_bird';
+  | 'draw_bird'
+  | 'draw_tree'
+  | 'draw_house';
 
 export interface ObjectMapping {
   keywords: string[];
@@ -36,6 +38,16 @@ export const objectVocabulary: ObjectMapping[] = [
     keywords: ['汽车', '小车', '车辆', '轿车', '车子'],
     type: 'draw_car',
     defaultColor: '#E74C3C'
+  },
+  {
+    keywords: ['树', '树木', '大树', '小树'],
+    type: 'draw_tree',
+    defaultColor: '#228B22'
+  },
+  {
+    keywords: ['房子', '房屋', '屋子', '房屋建筑'],
+    type: 'draw_house',
+    defaultColor: '#FFFF00'
   },
   {
     keywords: ['花', '花朵', '鲜花', '小花'],
