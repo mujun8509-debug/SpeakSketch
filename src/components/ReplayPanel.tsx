@@ -70,7 +70,7 @@ export function ReplayPanel() {
   };
 
   return (
-    <div className="replay-panel">
+    <div className="replay-panel panel-card">
       <h3 className="section-title">历史指令</h3>
       <div className="history-list">
         {commandHistory.length === 0 ? (

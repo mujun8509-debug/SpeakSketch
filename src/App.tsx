@@ -40,13 +40,13 @@ function App() {
 
     try {
       speak('开始演示，请稍候');
-      
+
       for (const text of DEMO_COMMANDS) {
         await new Promise(resolve => setTimeout(resolve, 800));
-        
+
         const startTime = Date.now();
         const logId = addLog({ commandId: '', rawText: text, status: 'executing' });
-        
+
         try {
           const command = parse(text);
           if (command.actions.length > 0) {
@@ -54,7 +54,7 @@ function App() {
             const actionTypes = command.actions.map(a => a.type);
             const success = commandExecutor.execute(command);
             const execTime = Date.now() - startTime;
-            
+
             updateLog(logId, {
               commandId: command.id,
               status: success ? 'success' : 'error',
@@ -101,7 +101,7 @@ function App() {
   };
 
   return (
-    <div className="app">
+    <div className="app-shell">
       {/* 顶部标题区域 */}
       <header className="header">
         <div className="header-content">
@@ -109,36 +109,56 @@ function App() {
           <p className="subtitle">纯语音结构化绘图工具</p>
           <p className="description">用语音创建、编辑、撤销和重放可编辑的结构化图形</p>
         </div>
-        <button 
-          className={`demo-button ${isDemoMode ? 'active' : ''}`}
-          onClick={runDemoMode}
-          disabled={isDemoMode}
-        >
-          {isDemoMode ? '演示中...' : '一键演示'}
-        </button>
+        <div className="header-right">
+          <div className="status-badges">
+            <span className="status-badge">Browser ASR</span>
+            <span className="status-badge">Local Parser</span>
+            <span className="status-badge">Bilingual Commands</span>
+            <span className="status-badge">Mock AI Style</span>
+            <span className="status-badge">Backend Proxy</span>
+          </div>
+          <button
+            className={`demo-button ${isDemoMode ? 'active' : ''}`}
+            onClick={runDemoMode}
+            disabled={isDemoMode}
+          >
+            {isDemoMode ? '演示中...' : '一键演示'}
+          </button>
+        </div>
       </header>
 
       {/* 主体区域 */}
-      <main className="main-content">
+      <main className="main-workspace">
         {/* 左侧画布区域 */}
-        <div className="canvas-section">
-          <Toolbar />
-          <CanvasBoard />
-          
+        <div className="canvas-stage">
+          <div className="canvas-card">
+            <div className="canvas-card-header">
+              <h2 className="canvas-title">创作画布</h2>
+              <p className="canvas-subtitle">Voice-driven canvas</p>
+            </div>
+            <div className="canvas-hint">
+              试试："在右下角画一只猫" 或 "画一个公园，有人、树、花、草地和小鸟"
+            </div>
+            <div className="canvas-wrapper">
+              <Toolbar />
+              <CanvasBoard />
+            </div>
+          </div>
+
           {/* AI 风格化面板 */}
           <AIStylePanel onGenerationComplete={handleGenerationComplete} />
-          
+
           {/* AI 结果预览 */}
           {aiResult && (
-            <AIResultPreview 
-              result={aiResult} 
-              onClose={() => setAiResult(null)} 
+            <AIResultPreview
+              result={aiResult}
+              onClose={() => setAiResult(null)}
             />
           )}
-          
+
           {/* 项目亮点卡片 */}
-          <div className="features-card">
-            <h3 className="features-title">项目亮点</h3>
+          <div className="features-card panel-card">
+            <h3 className="section-title">项目亮点</h3>
             <div className="features-grid">
               <div className="feature-item">
                 <span className="feature-icon">🎤</span>
@@ -169,16 +189,16 @@ function App() {
         </div>
 
         {/* 右侧控制台区域 */}
-        <aside className="sidebar">
+        <aside className="control-panel">
           <ASRSettingsPanel />
           <VoicePanel />
           <ExampleCommands />
           <CommandLog />
           <ReplayPanel />
-          
+
           {/* 能力说明区域 */}
-          <div className="capability-card">
-            <h3 className="capability-title">能力说明</h3>
+          <div className="capability-card panel-card">
+            <h3 className="section-title">能力说明</h3>
             <div className="capability-section">
               <h4 className="capability-subtitle">已支持</h4>
               <ul className="capability-list supported">

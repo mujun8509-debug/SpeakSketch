@@ -24,7 +24,7 @@ export function CanvasBoard() {
   }, []);
 
   return (
-    <div className="canvas-container">
+    <div className="canvas-board">
       <canvas ref={canvasRef} className="canvas" />
     </div>
   );
