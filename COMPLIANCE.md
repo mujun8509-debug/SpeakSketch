@@ -57,17 +57,17 @@ All dependencies are from the official npm registry. This documentation-only upd
 
 ## External APIs and Optional Backends
 
-项目默认状态下不直接调用外部大模型或云端服务。云端 ASR 与 GPT 图像生成均为可选后端代理能力，前端不保存任何 API Key。未配置后端接口时，系统通过浏览器 Web Speech API、调试输入框或 Mock 模式保证基础功能可用。
+项目默认状态下不直接调用外部大模型或云端服务。云端 ASR 与 Seedream 图生图风格化均为可选后端代理能力，前端不保存任何 API Key。未配置后端接口时，系统通过浏览器 Web Speech API、调试输入框或 Mock 模式保证基础功能可用。
 
 | Capability | Configuration | Notes |
 |------------|---------------|-------|
 | Browser speech recognition | Built-in Web Speech API | Default browser-side fallback |
 | Cloud ASR proxy | `VITE_ASR_API_URL` | Optional backend endpoint for Xunfei ASR proxy |
-| GPT image generation proxy | `VITE_IMAGE_API_URL` | Optional backend endpoint for GPT image generation |
+| Seedream image-to-image proxy | `VITE_IMAGE_API_URL` | Optional backend endpoint for Seedream image stylization |
 
 Security notes:
 - Xunfei APPID, APIKey, and APISecret must remain on the backend.
-- OpenAI API Key must remain on the backend.
+- Seedream API Key must remain on the backend.
 - The frontend only calls configured backend URLs and does not store provider credentials.
 
 ## Build Verification
