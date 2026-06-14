@@ -12,6 +12,13 @@
 - [ ] `GET /api/health`
 - [ ] `POST /api/asr` mock
 - [ ] `POST /api/style-image` mock
+- [ ] `/api/style-image` 生成失败或非法输入时返回受控错误
+
+### Seedream 图像 provider
+- [ ] 未配置 `SEEDREAM_API_KEY` 时 `/api/style-image` 返回 Mock 结果
+- [ ] 非法 data URL 或 provider 失败时返回受控错误
+- [ ] 前端不保存 `SEEDREAM_API_KEY`
+- [ ] 配置有效 `SEEDREAM_API_KEY` 后真实图生图风格化可用（仅在使用者自行配置 Key 后测试；未测试时不要勾选）
 
 ### 核心功能
 - [ ] 中文指令：`画一个红色圆形`
@@ -146,7 +153,8 @@
 - [ ] 无需登录即可使用
 - [ ] 未配置后端接口时，本地绘图与调试输入不依赖服务器
 - [ ] 配置云端 ASR 或图像生成接口时，仅通过后端代理调用
-- [ ] 前端不保存讯飞或 OpenAI API Key
+- [ ] 前端不保存讯飞或 Seedream API Key
+- [ ] 不存在 `VITE_SEEDREAM_API_KEY` 或前端直连 Seedream 的配置
 
 ## 测试通过标准
 

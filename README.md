@@ -37,7 +37,7 @@ npm run build
 
 ## 🧩 后端代理说明
 
-仓库新增 `server/` 目录作为最小后端代理骨架，用于后续安全接入讯飞 ASR 和 GPT 图像生成能力。当前后端只提供 mock 接口，不连接真实讯飞 WebSocket，也不调用真实 OpenAI 图像生成 API。
+仓库新增 `server/` 目录作为最小后端代理骨架，用于安全接入讯飞 ASR 和 Seedream 5.0 图生图风格化能力。当前后端不连接真实讯飞 WebSocket；Seedream 图像风格化是可选后端增强，结构化绘图主流程不依赖该能力。未配置后端 Key 时，系统使用 Mock 模式。
 
 后端本地启动：
 
@@ -56,9 +56,10 @@ VITE_IMAGE_API_URL=http://localhost:3001/api/style-image
 
 安全说明：
 - 讯飞 APPID、APIKey、APISecret 只允许放在后端 `.env` 中
-- OpenAI API Key 只允许放在后端 `.env` 中
+- Seedream API Key 只允许放在后端 `.env` 中
 - 不要提交真实 `.env`
-- 当前真实 provider 接入将在后续独立 PR 中完成
+- 未配置 `SEEDREAM_API_KEY` 时 `/api/style-image` 使用 Mock 模式
+- 本地测试已验证 Mock 与错误兜底路径；真实 Seedream 生成需在 `server/.env` 配置有效 Key 后由使用者自行测试
 
 ## 最终提交说明
 
@@ -157,7 +158,7 @@ src/
 | 编辑操作 | 基础功能经手动测试通过 | 移动、改色、缩放、删除 |
 | 历史管理 | 基础功能经手动测试通过 | 撤销、重做、重放 |
 | 语音识别 | 云端能力为可选接口预留 | 默认使用 Web Speech API；配置后端后可使用云端 ASR |
-| AI 风格化 | 云端能力为可选接口预留 | 配置 `VITE_IMAGE_API_URL` 时调用后端代理；未配置时使用 Mock 模式 |
+| AI 风格化 | 云端能力为可选接口预留 | 结构化绘图主流程不依赖该能力；配置 `VITE_IMAGE_API_URL` 后调用后端代理，后端未配置 `SEEDREAM_API_KEY` 时使用 Mock 模式 |
 
 ## 📝 开发日志
 
@@ -203,7 +204,7 @@ src/
 
 ## 🎨 AI 风格化成品
 
-本项目预留 AI 图像风格化后端代理能力，可在后续接入真实 provider 后将语音绘制的结构化草图转化为风格化成品图。当前 `server/` 骨架先返回 Mock 结果，不调用真实 OpenAI 图像生成 API。
+本项目提供可选 AI 图像风格化后端代理能力，可在 `server/.env` 配置 `SEEDREAM_API_KEY` 后调用 Seedream 5.0 图生图接口，将语音绘制的结构化草图作为输入图片转化为风格化成品图。结构化绘图主流程不依赖该能力；未配置后端 Key 时，系统使用 Mock 模式。本地测试已验证 Mock 与错误兜底路径，真实生成需使用者自行配置有效 Key 后测试，且可能产生 API 费用。
 
 ### 功能定位
 
@@ -244,38 +245,57 @@ Content-Type: application/json
   "prompt": "..."
 }
 
-返回:
+未配置 `SEEDREAM_API_KEY` 时返回:
 {
-  "imageUrl": "https://..."
+  "imageDataUrl": "data:image/png;base64,...",
+  "isMock": true,
+  "provider": "mock",
+  "message": "SEEDREAM_API_KEY is not configured. Using mock mode."
 }
-或:
+
+配置有效 `SEEDREAM_API_KEY` 且生成成功时返回:
 {
-  "imageDataUrl": "data:image/png;base64,..."
+  "imageDataUrl": "data:image/png;base64,...",
+  "isMock": false,
+  "provider": "seedream"
+}
+
+生成失败时返回受控错误:
+{
+  "error": "Seedream image generation failed",
+  "isMock": false
 }
 ```
 
 ### 配置方法
 
-在项目根目录创建 `.env` 文件：
+前端 `.env` 只配置后端代理地址：
 
 ```
 VITE_IMAGE_API_URL=http://localhost:3001/api/style-image
 ```
 
+真实 Seedream 图像生成只在后端启用，需要在 `server/.env` 中配置：
+
+```env
+SEEDREAM_API_KEY=你的有效后端密钥
+SEEDREAM_API_URL=
+SEEDREAM_MODEL=seedream-5.0
+```
+
+不要把 `SEEDREAM_API_KEY` 写入前端 `.env`，也不要提交真实 `.env`。
+
 ### Mock 模式
 
-未配置 `VITE_IMAGE_API_URL` 时：
-- 系统使用 Mock 模式
-- 直接返回原始画布图像
-- UI 标注"Mock 模式：未调用真实图像模型"
-- 不影响项目正常运行
+未配置 `VITE_IMAGE_API_URL` 时，前端使用本地 Mock；配置了后端 URL 但 `server/.env` 未设置有效 `SEEDREAM_API_KEY` 时，`/api/style-image` 返回 Mock 结果。若真实 provider 调用失败，后端返回受控错误，前端结构化绘图主流程和原始 Fabric 画布不受影响。
 
 ### 密钥安全
 
-- 前端不保存 OpenAI API Key
-- 前端不直接调用 OpenAI API
+- 前端不保存 Seedream API Key
+- 前端不直接调用 Seedream API
 - 前端只通过 `VITE_IMAGE_API_URL` 调用后端接口
-- 当前后端代理骨架先返回 Mock 结果，真实 OpenAI 图像生成 / 编辑 API 将在后续 PR 接入
+- 后端从 `server/.env` 读取 `SEEDREAM_API_KEY`
+- 未配置 `SEEDREAM_API_KEY` 时，后端返回 Mock 结果
 
 ## 🎤 讯飞 ASR 接入说明
 

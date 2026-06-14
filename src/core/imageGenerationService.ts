@@ -3,7 +3,7 @@
  * 图像生成服务
  * 
  * 重要说明：
- * - 前端不保存 OpenAI API Key
+ * - 前端不保存 Seedream API Key
  * - 前端只通过 VITE_IMAGE_API_URL 调用后端接口
  * - 未配置时使用 Mock 模式
  */

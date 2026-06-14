@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const dotenv = require('dotenv');
+const { generateStyledImage } = require('./services/imageProviderService');
 
 dotenv.config();
 
@@ -29,14 +30,25 @@ app.post('/api/asr', upload.single('audio'), (req, res) => {
   });
 });
 
-app.post('/api/style-image', (req, res) => {
-  const { imageDataUrl } = req.body || {};
+app.post('/api/style-image', async (req, res) => {
+  const { imageDataUrl, style, mood, prompt } = req.body || {};
 
-  res.json({
-    imageDataUrl: imageDataUrl || '',
-    isMock: true,
-    message: 'GPT image backend proxy is ready but real provider is not configured.',
-  });
+  try {
+    const result = await generateStyledImage({
+      imageDataUrl,
+      style,
+      mood,
+      prompt,
+    });
+
+    return res.json(result);
+  } catch (error) {
+    console.error('Seedream image generation failed', error);
+    return res.status(502).json({
+      error: 'Seedream image generation failed',
+      isMock: false,
+    });
+  }
 });
 
 app.listen(port, () => {

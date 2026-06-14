@@ -2,6 +2,17 @@ import * as fabric from 'fabric';
 import type { ShapeType, CanvasShape } from './commandTypes';
 import { generateId } from '../utils/id';
 
+function positionGroup<T extends fabric.Group & CanvasShape>(group: T, x: number, y: number): T {
+  group.set({
+    left: x,
+    top: y,
+    originX: 'center',
+    originY: 'center',
+  });
+  group.setCoords();
+  return group;
+}
+
 export function createCircle(
   x: number,
   y: number,
@@ -150,7 +161,11 @@ export function createSun(
     }));
   }
   
-  const group = new fabric.Group([circle, ...rays]) as fabric.Group & CanvasShape;
+  const group = positionGroup(
+    new fabric.Group([circle, ...rays]) as fabric.Group & CanvasShape,
+    x,
+    y
+  );
   
   group.id = generateId();
   group.name = '太阳';
@@ -204,7 +219,11 @@ export function createCloud(
     strokeWidth: 2,
   }));
   
-  const group = new fabric.Group(parts) as fabric.Group & CanvasShape;
+  const group = positionGroup(
+    new fabric.Group(parts) as fabric.Group & CanvasShape,
+    x,
+    y
+  );
   
   group.id = generateId();
   group.name = '云朵';
@@ -259,7 +278,11 @@ export function createTree(
     strokeWidth: 2,
   });
   
-  const group = new fabric.Group([trunk, canopy1, canopy2, canopy3]) as fabric.Group & CanvasShape;
+  const group = positionGroup(
+    new fabric.Group([trunk, canopy1, canopy2, canopy3]) as fabric.Group & CanvasShape,
+    x,
+    y
+  );
   
   group.id = generateId();
   group.name = '树';
@@ -319,7 +342,11 @@ export function createHouse(
     fill: '#FFD700',
   });
   
-  const group = new fabric.Group([wall, roof, door, doorknob]) as fabric.Group & CanvasShape;
+  const group = positionGroup(
+    new fabric.Group([wall, roof, door, doorknob]) as fabric.Group & CanvasShape,
+    x,
+    y
+  );
   
   group.id = generateId();
   group.name = '房子';
@@ -383,7 +410,11 @@ export function createPerson(
     strokeLineCap: 'round',
   });
 
-  const group = new fabric.Group([head, body, leftArm, rightArm, leftLeg, rightLeg]) as fabric.Group & CanvasShape;
+  const group = positionGroup(
+    new fabric.Group([head, body, leftArm, rightArm, leftLeg, rightLeg]) as fabric.Group & CanvasShape,
+    x,
+    y
+  );
 
   group.id = generateId();
   group.name = '人物';
@@ -469,7 +500,11 @@ export function createCat(
     strokeWidth: 2,
   });
 
-  const group = new fabric.Group([head, body, leftEar, rightEar, tail, leftWhisker1, leftWhisker2, rightWhisker1, rightWhisker2]) as fabric.Group & CanvasShape;
+  const group = positionGroup(
+    new fabric.Group([head, body, leftEar, rightEar, tail, leftWhisker1, leftWhisker2, rightWhisker1, rightWhisker2]) as fabric.Group & CanvasShape,
+    x,
+    y
+  );
 
   group.id = generateId();
   group.name = '猫';
@@ -562,7 +597,11 @@ export function createDog(
     strokeLineCap: 'round',
   });
 
-  const group = new fabric.Group([head, body, leftEar, rightEar, tail, leftFrontLeg, rightFrontLeg, leftBackLeg, rightBackLeg]) as fabric.Group & CanvasShape;
+  const group = positionGroup(
+    new fabric.Group([head, body, leftEar, rightEar, tail, leftFrontLeg, rightFrontLeg, leftBackLeg, rightBackLeg]) as fabric.Group & CanvasShape,
+    x,
+    y
+  );
 
   group.id = generateId();
   group.name = '狗';
@@ -631,7 +670,11 @@ export function createCar(
     strokeWidth: 2,
   });
 
-  const group = new fabric.Group([body, roof, window, leftWheel, rightWheel]) as fabric.Group & CanvasShape;
+  const group = positionGroup(
+    new fabric.Group([body, roof, window, leftWheel, rightWheel]) as fabric.Group & CanvasShape,
+    x,
+    y
+  );
 
   group.id = generateId();
   group.name = '汽车';
@@ -707,7 +750,11 @@ export function createFlower(
     angle: 45,
   });
 
-  const group = new fabric.Group([...petals, center, stem, leftLeaf, rightLeaf]) as fabric.Group & CanvasShape;
+  const group = positionGroup(
+    new fabric.Group([...petals, center, stem, leftLeaf, rightLeaf]) as fabric.Group & CanvasShape,
+    x,
+    y
+  );
 
   group.id = generateId();
   group.name = '花';
@@ -755,7 +802,11 @@ export function createMountain(
     strokeWidth: 2,
   });
 
-  const group = new fabric.Group([triangle1, triangle2, snowCap]) as fabric.Group & CanvasShape;
+  const group = positionGroup(
+    new fabric.Group([triangle1, triangle2, snowCap]) as fabric.Group & CanvasShape,
+    x,
+    y
+  );
 
   group.id = generateId();
   group.name = '山';
@@ -797,7 +848,11 @@ export function createRiver(
     strokeLineCap: 'round',
   });
 
-  const group = new fabric.Group([curve1, curve2, curve3, curve4]) as fabric.Group & CanvasShape;
+  const group = positionGroup(
+    new fabric.Group([curve1, curve2, curve3, curve4]) as fabric.Group & CanvasShape,
+    x,
+    y
+  );
 
   group.id = generateId();
   group.name = '河流';
@@ -845,7 +900,11 @@ export function createBoat(
     angle: 90,
   });
 
-  const group = new fabric.Group([hull, mast, sail]) as fabric.Group & CanvasShape;
+  const group = positionGroup(
+    new fabric.Group([hull, mast, sail]) as fabric.Group & CanvasShape,
+    x,
+    y
+  );
 
   group.id = generateId();
   group.name = '船';
@@ -875,7 +934,11 @@ export function createGrass(
     }));
   }
 
-  const group = new fabric.Group(grassBlades) as fabric.Group & CanvasShape;
+  const group = positionGroup(
+    new fabric.Group(grassBlades) as fabric.Group & CanvasShape,
+    x,
+    y
+  );
 
   group.id = generateId();
   group.name = '草地';
@@ -940,7 +1003,11 @@ export function createBird(
     strokeLineCap: 'round',
   });
 
-  const group = new fabric.Group([body, head, beak, wing, tail]) as fabric.Group & CanvasShape;
+  const group = positionGroup(
+    new fabric.Group([body, head, beak, wing, tail]) as fabric.Group & CanvasShape,
+    x,
+    y
+  );
 
   group.id = generateId();
   group.name = '鸟';
