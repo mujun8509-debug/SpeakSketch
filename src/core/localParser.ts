@@ -3,6 +3,7 @@ import { generateId } from '../utils/id';
 import { colorMap } from './colorMap';
 import { matchObjectType, extractColor as extractVocabColor } from './objectVocabulary';
 import { parseRelation, hasRelation } from './relationParser';
+import { CanvasPositionName, parseCanvasPositionName } from './positionResolver';
 
 interface ParsedShape {
   type: string;
@@ -14,6 +15,7 @@ interface ParsedShape {
 interface ParsedPosition {
   x?: number;
   y?: number;
+  position?: CanvasPositionName;
 }
 
 interface ParsedTarget {
@@ -99,27 +101,35 @@ function parseComplexObject(text: string): { type: string; color?: string; count
 
 function parseParkScene(text: string): DrawAction[] {
   const actions: DrawAction[] = [];
+  const hasSpecificObjects =
+    text.includes('人') ||
+    text.includes('树') ||
+    text.includes('花') ||
+    text.includes('草地') ||
+    text.includes('鸟') ||
+    text.includes('小鸟');
   
-  if (text.includes('人')) {
-    actions.push({ type: 'draw_person', payload: { x: 300, y: 450 } });
+  if (!hasSpecificObjects || text.includes('草地')) {
+    actions.push({ type: 'draw_grass', payload: { x: 400, y: 540 } });
   }
   
-  if (text.includes('树')) {
-    actions.push({ type: 'draw_tree', payload: { x: 150, y: 500 } });
-    actions.push({ type: 'draw_tree', payload: { x: 600, y: 500 } });
+  if (!hasSpecificObjects || text.includes('树')) {
+    actions.push({ type: 'draw_tree', payload: { x: 160, y: 380 } });
+    actions.push({ type: 'draw_tree', payload: { x: 640, y: 380 } });
   }
   
-  if (text.includes('花')) {
-    actions.push({ type: 'draw_flower', payload: { x: 200, y: 550 } });
-    actions.push({ type: 'draw_flower', payload: { x: 500, y: 550 } });
+  if (!hasSpecificObjects || text.includes('人')) {
+    actions.push({ type: 'draw_person', payload: { x: 400, y: 360 } });
   }
   
-  if (text.includes('草地')) {
-    actions.push({ type: 'draw_grass', payload: { x: 400, y: 580 } });
+  if (!hasSpecificObjects || text.includes('花')) {
+    actions.push({ type: 'draw_flower', payload: { x: 260, y: 500 } });
+    actions.push({ type: 'draw_flower', payload: { x: 420, y: 520 } });
+    actions.push({ type: 'draw_flower', payload: { x: 560, y: 500 } });
   }
   
-  if (text.includes('鸟') || text.includes('小鸟')) {
-    actions.push({ type: 'draw_bird', payload: { count: 3 } });
+  if (!hasSpecificObjects || text.includes('鸟') || text.includes('小鸟')) {
+    actions.push({ type: 'draw_bird', payload: { x: 280, y: 120, count: 3 } });
   }
   
   return actions;
@@ -175,29 +185,13 @@ function parseCampusScene(text: string): DrawAction[] {
   return actions;
 }
 
-function parsePosition(text: string, canvasWidth: number = 800, canvasHeight: number = 600): ParsedPosition | null {
-  if (text.includes('左上角')) {
-    return { x: 100, y: 80 };
-  }
-  if (text.includes('右上角')) {
-    return { x: canvasWidth - 100, y: 80 };
-  }
-  if (text.includes('左下角')) {
-    return { x: 100, y: canvasHeight - 100 };
-  }
-  if (text.includes('右下角')) {
-    return { x: canvasWidth - 100, y: canvasHeight - 100 };
-  }
-  if (text.includes('中间') || text.includes('中央')) {
-    return { x: canvasWidth / 2, y: canvasHeight / 2 };
-  }
-  if (text.includes('顶部') || text.includes('上面')) {
-    return { x: canvasWidth / 2, y: 100 };
-  }
-  if (text.includes('底部') || text.includes('下面')) {
-    return { x: canvasWidth / 2, y: canvasHeight - 80 };
-  }
-  return null;
+function parsePosition(text: string): ParsedPosition | null {
+  const position = parseCanvasPositionName(text);
+  return position ? { position } : null;
+}
+
+function buildPositionPayload(pos: ParsedPosition | null): ParsedPosition {
+  return pos ? { ...pos } : {};
 }
 
 function parseTarget(text: string): ParsedTarget | null {
@@ -240,8 +234,7 @@ function parseHouseCommand(text: string): DrawAction[] {
   actions.push({
     type: 'draw_house',
     payload: {
-      x: pos?.x,
-      y: pos?.y,
+      ...buildPositionPayload(pos),
       roofColor,
       wallColor,
       doorColor,
@@ -468,61 +461,73 @@ export function parse(text: string): DrawCommand {
       case 'draw_person':
         actions.push({
           type: 'draw_person',
-          payload: { x: pos?.x, y: pos?.y, color: complexObj.color },
+          payload: { ...buildPositionPayload(pos), color: complexObj.color },
         });
         break;
       case 'draw_cat':
         actions.push({
           type: 'draw_cat',
-          payload: { x: pos?.x, y: pos?.y, color: complexObj.color },
+          payload: { ...buildPositionPayload(pos), color: complexObj.color },
         });
         break;
       case 'draw_dog':
         actions.push({
           type: 'draw_dog',
-          payload: { x: pos?.x, y: pos?.y, color: complexObj.color },
+          payload: { ...buildPositionPayload(pos), color: complexObj.color },
         });
         break;
       case 'draw_car':
         actions.push({
           type: 'draw_car',
-          payload: { x: pos?.x, y: pos?.y, color: complexObj.color },
+          payload: { ...buildPositionPayload(pos), color: complexObj.color },
+        });
+        break;
+      case 'draw_tree':
+        actions.push({
+          type: 'draw_tree',
+          payload: { ...buildPositionPayload(pos) },
+        });
+        break;
+      case 'draw_house':
+        actions.push({
+          type: 'draw_house',
+          payload: { ...buildPositionPayload(pos) },
         });
         break;
       case 'draw_flower':
         actions.push({
           type: 'draw_flower',
-          payload: { x: pos?.x, y: pos?.y, color: complexObj.color },
+          payload: { ...buildPositionPayload(pos), color: complexObj.color },
         });
         break;
       case 'draw_mountain':
         actions.push({
           type: 'draw_mountain',
-          payload: { x: pos?.x, y: pos?.y, color: complexObj.color },
+          payload: { ...buildPositionPayload(pos), color: complexObj.color },
         });
         break;
       case 'draw_river':
         actions.push({
           type: 'draw_river',
-          payload: { x: pos?.x, y: pos?.y, color: complexObj.color },
+          payload: { ...buildPositionPayload(pos), color: complexObj.color },
         });
         break;
       case 'draw_boat':
         actions.push({
           type: 'draw_boat',
-          payload: { x: pos?.x, y: pos?.y, color: complexObj.color },
+          payload: { ...buildPositionPayload(pos), color: complexObj.color },
         });
         break;
       case 'draw_grass':
         actions.push({
           type: 'draw_grass',
-          payload: { x: pos?.x, y: pos?.y, color: complexObj.color },
+          payload: { ...buildPositionPayload(pos), color: complexObj.color },
         });
         break;
       case 'draw_bird':
         actions.push({
           type: 'draw_bird',
-          payload: { x: pos?.x, y: pos?.y, count: complexObj.count, color: complexObj.color },
+          payload: { ...buildPositionPayload(pos), count: complexObj.count, color: complexObj.color },
         });
         break;
     }
@@ -547,49 +552,49 @@ export function parse(text: string): DrawCommand {
       case 'circle':
         actions.push({
           type: 'draw_circle',
-          payload: { x: pos?.x, y: pos?.y, radius: 50, color },
+          payload: { ...buildPositionPayload(pos), radius: 50, color },
         });
         break;
       case 'rect':
         actions.push({
           type: 'draw_rect',
-          payload: { x: pos?.x, y: pos?.y, width: 100, height: 70, color },
+          payload: { ...buildPositionPayload(pos), width: 100, height: 70, color },
         });
         break;
       case 'triangle':
         actions.push({
           type: 'draw_triangle',
-          payload: { x: pos?.x, y: pos?.y, size: 80, color },
+          payload: { ...buildPositionPayload(pos), size: 80, color },
         });
         break;
       case 'sun':
         actions.push({
           type: 'draw_sun',
-          payload: { x: pos?.x, y: pos?.y, radius: 40 },
+          payload: { ...buildPositionPayload(pos), radius: 40 },
         });
         break;
       case 'cloud':
         actions.push({
           type: 'draw_cloud',
-          payload: { x: pos?.x, y: pos?.y, count: shape.count },
+          payload: { ...buildPositionPayload(pos), count: shape.count },
         });
         break;
       case 'tree':
         actions.push({
           type: 'draw_tree',
-          payload: { x: pos?.x, y: pos?.y },
+          payload: { ...buildPositionPayload(pos) },
         });
         break;
       case 'text':
         actions.push({
           type: 'draw_text',
-          payload: { x: pos?.x, y: pos?.y, text: shape.text, color },
+          payload: { ...buildPositionPayload(pos), text: shape.text, color },
         });
         break;
       case 'line':
         actions.push({
           type: 'draw_line',
-          payload: { x: pos?.x, y: pos?.y, color },
+          payload: { ...buildPositionPayload(pos), color },
         });
         break;
     }
