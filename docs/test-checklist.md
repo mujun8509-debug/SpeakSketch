@@ -11,8 +11,16 @@
 ### 后端接口
 - [ ] `GET /api/health`
 - [ ] `POST /api/asr` mock
+- [ ] `POST /api/asr` Xunfei provider（配置有效后端讯飞密钥后测试）
 - [ ] `POST /api/style-image` mock
 - [ ] `/api/style-image` 生成失败或非法输入时返回受控错误
+
+### Xunfei ASR provider
+- [ ] 未配置 `XUNFEI_APP_ID` / `XUNFEI_API_KEY` / `XUNFEI_API_SECRET` 时 `/api/asr` 返回 Mock 结果
+- [ ] 配置有效讯飞密钥后，`/api/asr` 通过后端代理调用讯飞实时语音听写
+- [ ] 前端录音上传前转换为 16k 单声道 WAV
+- [ ] 前端不保存讯飞 APPID、APIKey 或 APISecret
+- [ ] 识别失败时返回受控错误，浏览器识别和调试输入仍可作为兜底路径
 
 ### Seedream 图像 provider
 - [ ] 未配置 `SEEDREAM_API_KEY` 时 `/api/style-image` 返回 Mock 结果

@@ -67,7 +67,7 @@ curl http://localhost:3001/api/health
 ```
 
 **讲解**：
-> "后端当前是安全代理骨架，提供 health、ASR mock 和 style-image mock 接口，真实 provider 会在后续独立 PR 中接入。"
+> "后端提供 health、ASR 和 style-image 代理接口。配置有效后端密钥时可调用讯飞 ASR 或 Seedream 图生图，未配置时返回 Mock 或受控错误，前端不保存任何 provider Key。"
 
 ## 演示路线
 
@@ -222,8 +222,8 @@ curl http://localhost:3001/api/health
 
 ### 网络要求
 - 核心绘图、调试输入和浏览器识别可本地运行
-- 如需后端 Mock 代理接口，启动 `server/` 后端
-- 如需真实云端 ASR 或 AI 图像生成，需要后续接入真实 provider 并配置后端环境变量
+- 如需后端代理接口，启动 `server/` 后端
+- 如需真实云端 ASR 或 AI 图像生成，需要在 `server/.env` 配置有效后端环境变量
 
 ### 性能建议
 - 避免同时绘制过多对象

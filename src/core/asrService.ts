@@ -43,6 +43,121 @@ export function getASRConfig(): ASRConfig {
   };
 }
 
+type WindowWithWebkitAudioContext = Window &
+  typeof globalThis & {
+    webkitAudioContext?: typeof AudioContext;
+  };
+
+const XUNFEI_TARGET_SAMPLE_RATE = 16000;
+
+function writeAscii(view: DataView, offset: number, value: string): void {
+  for (let index = 0; index < value.length; index += 1) {
+    view.setUint8(offset + index, value.charCodeAt(index));
+  }
+}
+
+function mixToMono(audioBuffer: AudioBuffer): Float32Array {
+  const output = new Float32Array(audioBuffer.length);
+
+  for (let channel = 0; channel < audioBuffer.numberOfChannels; channel += 1) {
+    const input = audioBuffer.getChannelData(channel);
+    for (let index = 0; index < input.length; index += 1) {
+      output[index] += input[index] / audioBuffer.numberOfChannels;
+    }
+  }
+
+  return output;
+}
+
+function resampleLinear(
+  input: Float32Array,
+  sourceSampleRate: number,
+  targetSampleRate: number
+): Float32Array {
+  if (sourceSampleRate === targetSampleRate) {
+    return input;
+  }
+
+  const targetLength = Math.max(
+    1,
+    Math.round((input.length * targetSampleRate) / sourceSampleRate)
+  );
+  const output = new Float32Array(targetLength);
+  const ratio = sourceSampleRate / targetSampleRate;
+
+  for (let index = 0; index < targetLength; index += 1) {
+    const sourceIndex = index * ratio;
+    const leftIndex = Math.floor(sourceIndex);
+    const rightIndex = Math.min(leftIndex + 1, input.length - 1);
+    const weight = sourceIndex - leftIndex;
+    const left = input[leftIndex] || 0;
+    const right = input[rightIndex] || 0;
+    output[index] = left + (right - left) * weight;
+  }
+
+  return output;
+}
+
+function encodeWav(samples: Float32Array, sampleRate: number): Blob {
+  const bytesPerSample = 2;
+  const headerSize = 44;
+  const buffer = new ArrayBuffer(headerSize + samples.length * bytesPerSample);
+  const view = new DataView(buffer);
+
+  writeAscii(view, 0, 'RIFF');
+  view.setUint32(4, 36 + samples.length * bytesPerSample, true);
+  writeAscii(view, 8, 'WAVE');
+  writeAscii(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * bytesPerSample, true);
+  view.setUint16(32, bytesPerSample, true);
+  view.setUint16(34, 8 * bytesPerSample, true);
+  writeAscii(view, 36, 'data');
+  view.setUint32(40, samples.length * bytesPerSample, true);
+
+  let offset = headerSize;
+  for (let index = 0; index < samples.length; index += 1) {
+    const sample = Math.max(-1, Math.min(1, samples[index]));
+    view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+    offset += bytesPerSample;
+  }
+
+  return new Blob([buffer], { type: 'audio/wav' });
+}
+
+async function convertAudioBlobToXunfeiWav(audioBlob: Blob): Promise<Blob> {
+  const mimeType = audioBlob.type.toLowerCase();
+  if (mimeType.includes('wav') || mimeType.includes('l16') || mimeType.includes('pcm')) {
+    return audioBlob;
+  }
+
+  const AudioContextConstructor =
+    window.AudioContext || (window as WindowWithWebkitAudioContext).webkitAudioContext;
+
+  if (!AudioContextConstructor) {
+    throw new Error('Browser cannot convert recorded audio for cloud ASR.');
+  }
+
+  const arrayBuffer = await audioBlob.arrayBuffer();
+  const audioContext = new AudioContextConstructor();
+
+  try {
+    const decoded = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+    const monoSamples = mixToMono(decoded);
+    const resampled = resampleLinear(
+      monoSamples,
+      decoded.sampleRate,
+      XUNFEI_TARGET_SAMPLE_RATE
+    );
+    return encodeWav(resampled, XUNFEI_TARGET_SAMPLE_RATE);
+  } finally {
+    await audioContext.close().catch(() => undefined);
+  }
+}
+
 /**
  * 调用云端 ASR 服务（讯飞实时语音听写）
  * 
@@ -74,8 +189,9 @@ export async function transcribeWithXunfei(
   }
   
   try {
+    const uploadBlob = await convertAudioBlobToXunfeiWav(audioBlob);
     const formData = new FormData();
-    formData.append('audio', audioBlob, 'audio.webm');
+    formData.append('audio', uploadBlob, 'audio.wav');
     formData.append('languageMode', languageMode);
     
     const response = await fetch(config.apiUrl, {

@@ -2,12 +2,13 @@
 
 This directory contains the backend proxy for SpeakSketch.
 
-The current implementation keeps ASR mock-only and supports an optional Seedream image-to-image provider:
-- `/api/asr` accepts audio upload fields but does not call Xunfei ASR yet.
+The current implementation supports optional backend providers for Xunfei ASR and Seedream image-to-image:
+- `/api/asr` returns Mock output when Xunfei credentials are not configured.
+- `/api/asr` calls Xunfei IAT WebSocket when valid `XUNFEI_APP_ID`, `XUNFEI_API_KEY`, and `XUNFEI_API_SECRET` are configured in `server/.env`.
 - `/api/style-image` returns Mock output when `SEEDREAM_API_KEY` is not configured.
 - `/api/style-image` calls Seedream 5.0 image-to-image API when a valid `SEEDREAM_API_KEY` is configured in `server/.env`.
 
-Seedream image generation is an optional backend enhancement. It does not affect the structured drawing flow. Local verification covers Mock mode and controlled error handling; real generation requires a valid backend key and may incur provider costs.
+Cloud ASR and Seedream image generation are optional backend enhancements. They do not affect the structured drawing flow. The frontend never stores provider keys. Real provider calls require valid backend credentials and may incur provider costs.
 
 ## Install
 
@@ -38,6 +39,7 @@ SEEDREAM_MODEL=seedream-5.0
 XUNFEI_APP_ID=
 XUNFEI_API_KEY=
 XUNFEI_API_SECRET=
+XUNFEI_ASR_URL=wss://iat-api.xfyun.cn/v2/iat
 ```
 
 ## Start
@@ -67,7 +69,7 @@ Accepts `multipart/form-data`:
 - `audio`: audio file
 - `languageMode`: `auto`, `zh`, or `en`
 
-Current mock response:
+When Xunfei credentials are not configured, the endpoint returns Mock output:
 
 ```json
 {
@@ -102,6 +104,19 @@ When `SEEDREAM_API_KEY` is not configured, the endpoint returns the original `im
   "message": "SEEDREAM_API_KEY is not configured. Using mock mode."
 }
 ```
+
+When valid Xunfei credentials are configured, the endpoint proxies the uploaded audio to Xunfei IAT and returns:
+
+```json
+{
+  "text": "draw a blue rectangle",
+  "language": "en",
+  "confidence": 0.9,
+  "provider": "xunfei"
+}
+```
+
+The browser client converts recorded audio to 16k mono WAV before uploading. Direct API callers should upload 16-bit mono WAV/PCM audio.
 
 When a valid `SEEDREAM_API_KEY` is configured in `server/.env`, the endpoint sends the current canvas image as the image-to-image input and returns:
 

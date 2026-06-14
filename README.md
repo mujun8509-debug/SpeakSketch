@@ -37,7 +37,7 @@ npm run build
 
 ## 🧩 后端代理说明
 
-仓库新增 `server/` 目录作为最小后端代理骨架，用于安全接入讯飞 ASR 和 Seedream 5.0 图生图风格化能力。当前后端不连接真实讯飞 WebSocket；Seedream 图像风格化是可选后端增强，结构化绘图主流程不依赖该能力。未配置后端 Key 时，系统使用 Mock 模式。
+仓库新增 `server/` 目录作为最小后端代理，用于安全接入讯飞 ASR 和 Seedream 5.0 图生图风格化能力。配置讯飞后端密钥后，`/api/asr` 可通过后端代理调用讯飞实时语音听写；未配置讯飞密钥时返回 Mock 结果。Seedream 图像风格化是可选后端增强，结构化绘图主流程不依赖该能力；未配置后端 Key 时使用 Mock 模式。
 
 后端本地启动：
 
@@ -58,6 +58,7 @@ VITE_IMAGE_API_URL=http://localhost:3001/api/style-image
 - 讯飞 APPID、APIKey、APISecret 只允许放在后端 `.env` 中
 - Seedream API Key 只允许放在后端 `.env` 中
 - 不要提交真实 `.env`
+- 未配置讯飞密钥时 `/api/asr` 使用 Mock 模式，浏览器识别和调试输入仍可用
 - 未配置 `SEEDREAM_API_KEY` 时 `/api/style-image` 使用 Mock 模式
 - 本地测试已验证 Mock 与错误兜底路径；真实 Seedream 生成需在 `server/.env` 配置有效 Key 后由使用者自行测试
 
@@ -157,7 +158,7 @@ src/
 | 空间关系 | 基础功能经手动测试通过 | 旁边、左边、右边、上方、下方、天空、地面、河上 |
 | 编辑操作 | 基础功能经手动测试通过 | 移动、改色、缩放、删除 |
 | 历史管理 | 基础功能经手动测试通过 | 撤销、重做、重放 |
-| 语音识别 | 云端能力为可选接口预留 | 默认使用 Web Speech API；配置后端后可使用云端 ASR |
+| 语音识别 | 可选后端代理已接入 | 默认使用 Web Speech API；配置后端讯飞密钥后可使用云端 ASR；未配置时可继续使用浏览器识别或调试输入 |
 | AI 风格化 | 云端能力为可选接口预留 | 结构化绘图主流程不依赖该能力；配置 `VITE_IMAGE_API_URL` 后调用后端代理，后端未配置 `SEEDREAM_API_KEY` 时使用 Mock 模式 |
 
 ## 📝 开发日志
@@ -299,11 +300,11 @@ SEEDREAM_MODEL=seedream-5.0
 
 ## 🎤 讯飞 ASR 接入说明
 
-本项目预留讯飞实时语音听写的后端代理接口作为可选语音识别方案。当前 `server/` 骨架先返回 Mock 结果，不连接真实讯飞 WebSocket。
+本项目已接入讯飞实时语音听写的后端代理作为可选语音识别方案。前端不保存讯飞密钥，只通过 `VITE_ASR_API_URL` 调用自有后端；后端在 `server/.env` 配置有效讯飞密钥后连接讯飞 WebSocket，未配置时返回 Mock 结果。
 
 ### 接入方式
 
-- **讯飞实时语音听写**: 后续接入后用于短语音指令识别
+- **讯飞实时语音听写**: 配置后端密钥后用于短语音指令识别
 - **前端不保存密钥**: 讯飞 APPID、APIKey、APISecret 仅在后端使用，前端不接触
 - **需要后端代理**: 前端通过自有后端接口代理讯飞 WebSocket 连接
 - **前端调用方式**: 通过环境变量 `VITE_ASR_API_URL` 调用后端接口
@@ -315,7 +316,7 @@ POST VITE_ASR_API_URL
 Content-Type: multipart/form-data
 
 请求参数:
-- audio: 音频文件 (WebM/Opus 格式)
+- audio: 音频文件（前端录音会在上传前转换为 16k 单声道 WAV；直接调用接口时建议上传 16-bit mono WAV/PCM）
 - languageMode: 语言模式 ("auto" | "zh" | "en")
 
 返回格式:
@@ -337,7 +338,7 @@ VITE_ASR_API_URL=http://localhost:3001/api/asr
 ### 识别模式
 
 - **浏览器识别**: 使用 Web Speech API，无需配置，兼容性依赖浏览器
-- **云端识别**: 通过后端代理接口调用；当前骨架返回 Mock，真实讯飞将在后续 PR 接入
+- **云端识别**: 配置后端讯飞密钥后通过后端代理调用；未配置时返回 Mock 并提示使用兜底路径
 - **自动模式**: 优先使用云端识别，失败时回退到浏览器识别
 
 ### 语言模式
