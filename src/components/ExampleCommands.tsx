@@ -154,7 +154,7 @@ export function ExampleCommands() {
   };
 
   return (
-    <div className="example-commands">
+    <div className="example-commands panel-card">
       {commandGroups.map((group) => (
         <div key={group.title} className="example-group">
           <h3 className="section-title">{group.title}</h3>

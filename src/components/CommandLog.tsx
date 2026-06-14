@@ -133,7 +133,7 @@ export function CommandLog() {
   };
 
   return (
-    <div className="command-log">
+    <div className="command-log panel-card">
       <h3 className="section-title">指令日志</h3>
       <div className="log-list">
         {logs.length === 0 ? (

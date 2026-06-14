@@ -61,7 +61,7 @@ export function ASRSettingsPanel() {
   };
 
   return (
-    <div className="asr-settings-panel">
+    <div className="asr-settings-panel panel-card">
       <button 
         className="asr-settings-toggle"
         onClick={() => setIsOpen(!isOpen)}

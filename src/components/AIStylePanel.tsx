@@ -119,7 +119,7 @@ export function AIStylePanel({ onGenerationComplete }: AIStylePanelProps) {
   };
 
   return (
-    <div className="ai-style-panel">
+    <div className="ai-style-panel panel-card">
       <button 
         className="ai-style-toggle"
         onClick={() => setIsOpen(!isOpen)}
