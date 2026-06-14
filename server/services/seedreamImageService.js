@@ -29,9 +29,11 @@ function buildSeedreamPrompt({ style, mood, prompt }) {
 }
 
 function getSeedreamConfig() {
+  const apiUrl = process.env.SEEDREAM_API_URL || DEFAULT_API_URL;
+
   return {
     apiKey: process.env.SEEDREAM_API_KEY,
-    apiUrl: process.env.SEEDREAM_API_URL || DEFAULT_API_URL,
+    apiUrl: apiUrl.trim().replace(/^(GET|POST|PUT|PATCH|DELETE)\s+/i, ''),
     model: process.env.SEEDREAM_MODEL || DEFAULT_MODEL,
     size: process.env.SEEDREAM_IMAGE_SIZE || DEFAULT_SIZE,
   };
