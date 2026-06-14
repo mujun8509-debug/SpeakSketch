@@ -232,7 +232,7 @@ export function VoicePanel() {
   const asrStatus = getASRStatus();
 
   return (
-    <div className="voice-panel">
+    <div className="voice-panel panel-card">
       <div className="section">
         <h3 className="section-title">语音控制</h3>
         
